@@ -10,16 +10,19 @@ Evaluate, compare, and secure your AI agents with structured metrics — not vib
 
 Existing evaluation tools focus on LLM output quality. But agents are **multi-step systems** — they use tools, make decisions, recover from errors, and follow instructions. You need to evaluate the *journey*, not just the destination.
 
-**agentic-eval** captures the full execution trajectory of your agent and scores it against your skill specifications using 7 structured metrics across 3 tiers.
+**agentic-eval** captures the full execution trajectory of your agent and scores it against your skill specifications using 11 structured metrics across 3 tiers — including **trajectory-aware metrics** that validate MCP/RAG tool responses are actually aligned with the user's query and that the final output is grounded in evidence, not hallucinated.
 
 | Feature | agentic-eval | DeepEval | AgentOps | LangSmith |
 |---|---|---|---|---|
-| Trajectory-based scoring | Yes | No | Partial | Partial |
+| Trajectory-based scoring | Yes (11 metrics) | No | Partial | Partial |
+| MCP/RAG response validation | Yes | No | No | No |
+| Hallucination detection | Yes | Yes | No | No |
+| Groundedness scoring | Yes | Yes | No | Partial |
 | SKILL.md parsing | Yes | No | No | No |
 | Decorator API (sync + async) | Yes | Yes | No | No |
 | Security scanning | Yes | No | No | No |
 | A/B skill comparison | Yes | No | No | No |
-| Framework adapters | Yes | N/A | N/A | LangChain only |
+| Framework adapters | 4 built-in | N/A | N/A | LangChain only |
 | Self-hosted, no vendor lock-in | Yes | Yes | No | No |
 
 ---
@@ -103,7 +106,7 @@ def test_code_review_skill():
 
 ## Metrics
 
-agentic-eval ships with 7 metrics across 3 tiers:
+agentic-eval ships with 11 metrics across 3 tiers:
 
 ### Tier 1 — Non-Negotiable
 
@@ -112,6 +115,8 @@ agentic-eval ships with 7 metrics across 3 tiers:
 | `task_completion` | Was the goal achieved? Binary per attempt. |
 | `instruction_fidelity` | Did the agent follow the SKILL.md spec? |
 | `output_correctness` | Is the result right, not just done? |
+| `groundedness` | Is the output grounded in tool/RAG/MCP response evidence? |
+| `hallucination` | Does the output contain fabricated facts not from any evidence source? |
 
 ### Tier 2 — Diagnostic
 
@@ -119,13 +124,57 @@ agentic-eval ships with 7 metrics across 3 tiers:
 |---|---|
 | `step_deviation` | Diff between expected and actual action sequence. |
 | `tool_selection` | Percentage of tool calls matching prescribed tools. |
+| `tool_response_alignment` | Are MCP/RAG tool calls and responses relevant to the query? |
 | `error_recovery` | When a step fails, does the agent recover or spiral? |
+| `trajectory_optimality` | Is the trajectory coherent, non-redundant, and logically ordered? |
 
 ### Tier 3 — Efficiency
 
 | Metric | What it measures |
 |---|---|
 | `action_economy` | Actual steps / optimal steps ratio. |
+
+### Trajectory-Aware Metrics (Deep Dive)
+
+The four new trajectory metrics are designed for **MCP and RAG pipelines** where agents call external tools and must faithfully use the results:
+
+**Tool-Response Alignment** evaluates the full semantic pipeline for each tool call:
+- **Argument Relevance**: Do the tool arguments relate to the user query?
+- **Response Relevance**: Does the tool response contain information the agent needs?
+- **Response Utilization**: Did the agent actually use the response in its output?
+
+**Groundedness** checks if the final output is supported by evidence:
+- **Claim Coverage**: What fraction of output claims trace back to a tool response?
+- **Entity Grounding**: Are named entities in the output found in the evidence?
+- **Evidence Utilization**: How much gathered evidence was used?
+
+**Hallucination Detection** specifically targets verifiable facts:
+- Extracts numbers, dates, URLs, file paths, and version strings from the output
+- Checks each fact against all evidence sources (tool responses, user query, skill spec)
+- Assesses severity: fabricated dollar amounts are worse than made-up file paths
+
+**Trajectory Optimality** evaluates the execution plan quality:
+- **Redundancy**: Repeated identical tool calls with same arguments
+- **Logical Ordering**: Write-before-read, submit-before-validate violations
+- **Backtracking**: Create-then-delete undo/redo patterns
+- **Result Utilization**: Tool results that were never used downstream
+
+```python
+from agentic_eval import run_evaluation, Trace
+from agentic_eval.tracer import trace_context, record_tool_call
+
+with trace_context(input="What is project Alpha's status?") as trace:
+    record_tool_call("mcp_query", 
+                     arguments={"query": "project Alpha status"},
+                     result="Project Alpha: 85% complete, on track for Q3.")
+    trace.output = "Project Alpha is 85% complete and on track for Q3."
+
+result = run_evaluation(
+    trace, 
+    metrics=["groundedness", "hallucination", "tool_response_alignment"],
+)
+result.print()  # Shows per-metric grounding analysis
+```
 
 ### Custom Metrics
 
@@ -337,16 +386,21 @@ agentic-eval dashboard                    # Launch web dashboard
 │                   Tracer Layer                        │
 │  trace_context / span_context / record_tool_call     │
 │  Async support: async_trace_context / async_span     │
+│  Adapters: Gemini │ LangChain │ OpenAI │ OTel       │
 └──────────────┬───────────────────────────────────────┘
                │
 ┌──────────────▼───────────────────────────────────────┐
-│                 Evaluation Engine                     │
-│  ┌─────────┐  ┌─────────┐  ┌──────────┐            │
-│  │ Tier 1  │  │ Tier 2  │  │ Tier 3   │            │
-│  │ Task    │  │ Step    │  │ Action   │            │
-│  │ Instr.  │  │ Tool    │  │ Economy  │            │
-│  │ Output  │  │ Error   │  │          │            │
-│  └─────────┘  └─────────┘  └──────────┘            │
+│              Evaluation Engine (11 Metrics)           │
+│  ┌────────────────┐  ┌──────────────┐  ┌─────────┐  │
+│  │   Tier 1 (5)   │  │  Tier 2 (5)  │  │Tier 3(1)│  │
+│  │ Task Completion │  │ Step Deviat. │  │ Action  │  │
+│  │ Instr. Fidelity │  │ Tool Select. │  │ Economy │  │
+│  │ Output Correct. │  │ Tool-Resp    │  │         │  │
+│  │ Groundedness    │  │   Alignment  │  │         │  │
+│  │ Hallucination   │  │ Error Recov. │  │         │  │
+│  │                 │  │ Trajectory   │  │         │  │
+│  │                 │  │   Optimality │  │         │  │
+│  └────────────────┘  └──────────────┘  └─────────┘  │
 │                                                      │
 │  Judges: Rule-based │ LLM-as-Judge (OpenAI/Claude)  │
 └──────────────┬───────────────────────────────────────┘

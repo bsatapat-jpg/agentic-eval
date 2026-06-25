@@ -24,6 +24,10 @@ def _auto_register() -> None:
     from .tool_selection import ToolSelectionMetric
     from .error_recovery import ErrorRecoveryMetric
     from .action_economy import ActionEconomyMetric
+    from .tool_response_alignment import ToolResponseAlignmentMetric
+    from .grounding import GroundednessMetric
+    from .trajectory_optimality import TrajectoryOptimalityMetric
+    from .hallucination import HallucinationMetric
 
     for cls in [
         TaskCompletionMetric,
@@ -33,6 +37,10 @@ def _auto_register() -> None:
         ToolSelectionMetric,
         ErrorRecoveryMetric,
         ActionEconomyMetric,
+        ToolResponseAlignmentMetric,
+        GroundednessMetric,
+        TrajectoryOptimalityMetric,
+        HallucinationMetric,
     ]:
         _registry.register(cls())
 

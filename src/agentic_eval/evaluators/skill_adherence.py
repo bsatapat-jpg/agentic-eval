@@ -14,14 +14,19 @@ from ..metrics.step_deviation import StepDeviationMetric
 from ..metrics.tool_selection import ToolSelectionMetric
 from ..metrics.error_recovery import ErrorRecoveryMetric
 from ..metrics.action_economy import ActionEconomyMetric
+from ..metrics.tool_response_alignment import ToolResponseAlignmentMetric
+from ..metrics.grounding import GroundednessMetric
+from ..metrics.trajectory_optimality import TrajectoryOptimalityMetric
+from ..metrics.hallucination import HallucinationMetric
 from ..skill_parser import parse_skill
 
 
 class SkillAdherenceEvaluator:
     """Full skill adherence scoring pipeline.
 
-    Combines all Tier 1 + Tier 2 metrics into a single weighted grade.
-    Provides a comprehensive EvalResult with detailed per-metric breakdown.
+    Combines all Tier 1 + Tier 2 + Tier 3 metrics into a single weighted
+    grade. Provides a comprehensive EvalResult with detailed per-metric
+    breakdown including trajectory-aware metrics for MCP/RAG validation.
 
     Usage:
         evaluator = SkillAdherenceEvaluator("./SKILL.md")
@@ -31,13 +36,20 @@ class SkillAdherenceEvaluator:
     """
 
     DEFAULT_WEIGHTS = {
-        "task_completion": 0.25,
-        "instruction_fidelity": 0.25,
-        "output_correctness": 0.20,
-        "step_deviation": 0.10,
-        "tool_selection": 0.10,
+        # Tier 1: Non-negotiable
+        "task_completion": 0.15,
+        "instruction_fidelity": 0.15,
+        "output_correctness": 0.10,
+        "groundedness": 0.10,
+        "hallucination": 0.10,
+        # Tier 2: Diagnostic
+        "step_deviation": 0.08,
+        "tool_selection": 0.08,
+        "tool_response_alignment": 0.08,
         "error_recovery": 0.05,
-        "action_economy": 0.05,
+        "trajectory_optimality": 0.07,
+        # Tier 3: Efficiency
+        "action_economy": 0.04,
     }
 
     GRADE_THRESHOLDS = {
@@ -70,9 +82,13 @@ class SkillAdherenceEvaluator:
             TaskCompletionMetric(use_llm_judge=use_llm_judge),
             InstructionFidelityMetric(use_llm_judge=use_llm_judge),
             OutputCorrectnessMetric(),
+            GroundednessMetric(use_llm_judge=use_llm_judge),
+            HallucinationMetric(use_llm_judge=use_llm_judge),
             StepDeviationMetric(),
             ToolSelectionMetric(),
+            ToolResponseAlignmentMetric(use_llm_judge=use_llm_judge),
             ErrorRecoveryMetric(),
+            TrajectoryOptimalityMetric(),
             ActionEconomyMetric(),
         ]
 
@@ -134,7 +150,10 @@ class SkillAdherenceEvaluator:
     def _determine_verdict(
         self, results: list[MetricResult], overall: float
     ) -> Verdict:
-        tier1_names = {"task_completion", "instruction_fidelity", "output_correctness"}
+        tier1_names = {
+            "task_completion", "instruction_fidelity", "output_correctness",
+            "groundedness", "hallucination",
+        }
         tier1_results = [r for r in results if r.metric_name in tier1_names]
 
         if any(not r.passed for r in tier1_results):
