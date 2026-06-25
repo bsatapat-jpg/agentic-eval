@@ -30,7 +30,53 @@ result.print()
 - Token usage metadata extraction
 - Model name tracking
 
-## LangChain / LangGraph
+## LangGraph
+
+Converts LangGraph agent state, message lists, or streaming events. This is the recommended adapter for LangGraph and Aegra-based agents.
+
+```python
+from agentic_eval.adapters import from_langgraph
+from agentic_eval import run_evaluation
+
+# From LangGraph state (most common)
+final_state = await graph.ainvoke({"messages": [HumanMessage("query")]})
+trace = from_langgraph(final_state)
+
+# From a message list directly
+trace = from_langgraph(messages)
+
+# From astream_events (streaming)
+events = [e async for e in graph.astream_events(input, version="v2")]
+trace = from_langgraph(events)
+
+result = run_evaluation(trace, skill="./SKILL.md")
+result.print()
+```
+
+**Message type mapping:**
+
+| LangChain type | agentic-eval type |
+|---|---|
+| `AIMessage` / `ai` | `LLM_CALL` (with child `TOOL_CALL` spans for each `tool_calls` entry) |
+| `ToolMessage` / `tool` | `TOOL_CALL` (with result) |
+| `HumanMessage` / `human` | Extracted as trace input |
+
+**Streaming event mapping:**
+
+| Event | agentic-eval type |
+|---|---|
+| `on_chat_model_end` | `LLM_CALL` |
+| `on_tool_start` / `on_tool_end` | `TOOL_CALL` |
+| `on_retriever_end` | `RETRIEVAL` |
+
+**Handles:**
+- LangChain message objects (auto-converted via `model_dump()`)
+- Tool calls with JSON string arguments (auto-parsed)
+- Error detection from `ToolMessage.status == "error"`
+- Model name and token usage metadata extraction
+- Multi-content blocks (text + tool calls)
+
+## LangChain / LangSmith
 
 Converts LangSmith run dicts or LangChain callback data.
 

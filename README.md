@@ -22,7 +22,9 @@ Existing evaluation tools focus on LLM output quality. But agents are **multi-st
 | Decorator API (sync + async) | Yes | Yes | No | No |
 | Security scanning | Yes | No | No | No |
 | A/B skill comparison | Yes | No | No | No |
-| Framework adapters | 6 built-in | N/A | N/A | LangChain only |
+| Framework adapters | 7 built-in | N/A | N/A | LangChain only |
+| Config-driven CI/CD | Yes (YAML) | No | No | Partial |
+| Live agent HTTP eval | Yes | No | No | No |
 | Self-hosted, no vendor lock-in | Yes | Yes | No | No |
 
 ---
@@ -88,7 +90,8 @@ result.print()
 |---|---|
 | [Getting Started](docs/getting-started.md) | Installation, quick start, async, pytest, batch, callbacks |
 | [Metrics Reference](docs/metrics.md) | All 11 metrics with sub-scores, weights, and examples |
-| [Framework Adapters](docs/adapters.md) | Gemini, LangChain, Langfuse, MLflow, OpenAI, OTel |
+| [Framework Adapters](docs/adapters.md) | Gemini, LangGraph, LangChain, Langfuse, MLflow, OpenAI, OTel |
+| [Integration Guide](docs/integration-guide.md) | Config-driven YAML, HTTP live eval, CI/CD, architecture examples |
 | [SKILL.md Format](docs/skill-format.md) | How to write and structure skill specifications |
 | [Security Scanning](docs/security.md) | Vulnerability detection, grading, CI integration |
 | [Skill Comparison](docs/comparison.md) | A/B testing between skill versions |
