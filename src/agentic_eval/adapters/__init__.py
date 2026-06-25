@@ -12,6 +12,7 @@ Trace/Span model so you can evaluate agents built with any framework.
 
 from .gemini_adapter import from_gemini
 from .langchain_adapter import from_langchain
+from .langgraph_adapter import from_langgraph
 from .langfuse_adapter import from_langfuse
 from .mlflow_adapter import from_mlflow
 from .openai_adapter import from_openai
@@ -20,6 +21,7 @@ from .otel_adapter import from_otel
 __all__ = [
     "from_gemini",
     "from_langchain",
+    "from_langgraph",
     "from_langfuse",
     "from_mlflow",
     "from_openai",

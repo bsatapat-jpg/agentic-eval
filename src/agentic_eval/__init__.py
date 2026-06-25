@@ -55,6 +55,8 @@ from .api import (
 )
 from .metrics import get_registry, register_metric
 from .metrics.base import BaseMetric
+from .config import EvalConfig, load_config
+from .agent_evaluator import AgentEvaluator
 
 __version__ = "0.1.0"
 
@@ -106,4 +108,8 @@ __all__ = [
     "BaseMetric",
     "get_registry",
     "register_metric",
+    # Config & agent evaluation
+    "AgentEvaluator",
+    "EvalConfig",
+    "load_config",
 ]

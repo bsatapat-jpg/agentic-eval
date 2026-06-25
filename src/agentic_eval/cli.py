@@ -213,6 +213,170 @@ def compare(skill_a: str, skill_b: str, db: str, output_format: str) -> None:
         console.print("\n[yellow bold]Verdict: Similar security profiles[/yellow bold]")
 
 
+@main.command()
+@click.option("--config", "-c", "config_path", type=click.Path(), default=None,
+              help="Path to agentic-eval.yaml config file")
+@click.option("--fail-below", type=float, default=None,
+              help="Override: fail if overall score is below this threshold")
+@click.option("--format", "output_format", type=click.Choice(["table", "json"]),
+              default=None, help="Override output format")
+def ci(config_path: str | None, fail_below: float | None, output_format: str | None) -> None:
+    """Run evaluation from a YAML config file (CI/CD mode).
+
+    Reads agentic-eval.yaml, runs test cases against the configured agent,
+    evaluates results, and exits non-zero if thresholds are not met.
+    """
+    from .config import load_config
+
+    try:
+        cfg = load_config(config_path)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        sys.exit(1)
+    except ImportError as e:
+        console.print(f"[red]{e}[/red]")
+        sys.exit(1)
+
+    fmt = output_format or cfg.ci.output_format or "table"
+    threshold = fail_below if fail_below is not None else cfg.ci.fail_below
+
+    console.print(f"\n[bold]Project:[/bold] {cfg.project or 'unnamed'}")
+    console.print(f"[bold]Skills:[/bold]  {len(cfg.skills)}")
+    console.print(f"[bold]Tests:[/bold]   {len(cfg.test_cases)}\n")
+
+    if not cfg.has_test_cases and not cfg.skills:
+        console.print("[yellow]No test cases or skills configured. Nothing to evaluate.[/yellow]")
+        sys.exit(0)
+
+    all_results: list[dict] = []
+    exit_code = 0
+
+    if cfg.skills and not cfg.has_test_cases:
+        from .evaluators.security import SecurityEvaluator
+        evaluator = SecurityEvaluator()
+        for skill_cfg in cfg.skills:
+            report = evaluator.scan_skill(skill_cfg.path)
+            if fmt == "table":
+                _display_security_report(report)
+            else:
+                click.echo(json.dumps(report.model_dump(), indent=2, default=str))
+
+            for metric_name, min_score in skill_cfg.thresholds.items():
+                if metric_name == "security" and report.score < min_score:
+                    console.print(
+                        f"[red]FAIL:[/red] {skill_cfg.path} security score "
+                        f"{report.score:.2f} < {min_score}"
+                    )
+                    exit_code = 1
+
+    if cfg.has_test_cases:
+        from .api import run_evaluation as _run_eval
+        from .models import Trace
+
+        if cfg.has_agent:
+            from .agent_evaluator import AgentEvaluator
+
+            agent_eval = AgentEvaluator(config=cfg.agent)
+
+            for i, tc in enumerate(cfg.test_cases):
+                skill_path = tc.skill or (cfg.skills[0].path if cfg.skills else None)
+                skill_thresholds = {}
+                skill_weights = {}
+                if cfg.skills:
+                    matching = [s for s in cfg.skills if s.path == skill_path]
+                    if matching:
+                        skill_thresholds = matching[0].thresholds
+                        skill_weights = matching[0].weights
+
+                merged_thresholds = {**skill_thresholds}
+                merged_weights = {**cfg.metrics.weights, **skill_weights}
+
+                try:
+                    response = agent_eval.call_agent(tc.input)
+                    trace = agent_eval.response_to_trace(tc.input, response)
+                except Exception as e:
+                    console.print(f"[red]Test {i+1} ERROR:[/red] {e}")
+                    exit_code = 1
+                    continue
+
+                result = _run_eval(
+                    trace=trace,
+                    skill=skill_path,
+                    metrics=cfg.metrics.enabled,
+                    thresholds=merged_thresholds or None,
+                    weights=merged_weights or None,
+                    use_llm_judge=cfg.metrics.use_llm_judge,
+                    save=cfg.ci.save,
+                    db_path=cfg.ci.db_path,
+                )
+
+                entry = {
+                    "test": i + 1,
+                    "input": tc.input[:60],
+                    "verdict": result.verdict.value,
+                    "score": result.overall_score,
+                    "metrics": {m.metric_name: m.score for m in result.metric_results},
+                }
+                all_results.append(entry)
+
+                if threshold and result.overall_score < threshold:
+                    exit_code = 1
+                if cfg.ci.fail_on_any_metric_below:
+                    for mr in result.metric_results:
+                        if mr.score < cfg.ci.fail_on_any_metric_below:
+                            exit_code = 1
+        else:
+            console.print("[yellow]Test cases defined but no agent URL configured.[/yellow]")
+            console.print("[dim]Add an 'agent:' section to your config to run live evaluation.[/dim]\n")
+
+    if all_results:
+        if fmt == "json":
+            output = {"project": cfg.project, "results": all_results}
+            json_str = json.dumps(output, indent=2, default=str)
+            click.echo(json_str)
+            if cfg.ci.output_file:
+                Path(cfg.ci.output_file).write_text(json_str)
+        else:
+            table = Table(title="Evaluation Results")
+            table.add_column("#", justify="right", style="dim")
+            table.add_column("Input", max_width=50)
+            table.add_column("Verdict", style="bold")
+            table.add_column("Score", justify="right")
+
+            verdict_colors = {"pass": "green", "fail": "red", "partial": "yellow"}
+
+            for r in all_results:
+                v = r["verdict"]
+                color = verdict_colors.get(v, "white")
+                table.add_row(
+                    str(r["test"]),
+                    r["input"],
+                    f"[{color}]{v.upper()}[/{color}]",
+                    f"{r['score']:.3f}",
+                )
+
+            console.print(table)
+
+            avg = sum(r["score"] for r in all_results) / len(all_results)
+            passed = sum(1 for r in all_results if r["verdict"] == "pass")
+            console.print(
+                f"\n[bold]Pass rate:[/bold] {passed}/{len(all_results)}  "
+                f"[bold]Avg score:[/bold] {avg:.3f}"
+            )
+
+            if cfg.ci.output_file:
+                Path(cfg.ci.output_file).write_text(
+                    json.dumps({"project": cfg.project, "results": all_results}, indent=2, default=str)
+                )
+
+    if exit_code:
+        console.print("\n[red bold]CI CHECK FAILED[/red bold]")
+    else:
+        console.print("\n[green bold]CI CHECK PASSED[/green bold]")
+
+    sys.exit(exit_code)
+
+
 @main.command("metrics")
 def list_metrics_cmd() -> None:
     """List all registered evaluation metrics."""
