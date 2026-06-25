@@ -238,7 +238,7 @@ class TestRunEvaluationMetricsFilter:
         trace = Trace(input="test", output="result")
         result = run_evaluation(trace, metrics=None)
 
-        assert len(result.metric_results) == 7
+        assert len(result.metric_results) == 11
 
 
 # ────────────────────────────────────────────────────

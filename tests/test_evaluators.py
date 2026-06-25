@@ -40,7 +40,7 @@ class TestSkillAdherenceEvaluator:
         evaluator = SkillAdherenceEvaluator(skill=spec)
         result = evaluator.evaluate(trace)
         assert result.overall_score > 0
-        assert len(result.metric_results) == 7
+        assert len(result.metric_results) == 11
 
     def test_grading(self):
         spec = SkillSpec(name="test")
