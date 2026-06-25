@@ -78,6 +78,88 @@ result = run_evaluation(trace, skill="./SKILL.md")
 - Function call messages (legacy format)
 - JSON string arguments (auto-parsed)
 
+## Langfuse
+
+Converts Langfuse observations into hierarchical traces. Supports both the v2 observation-list format (from `api.observations.get_many()`) and legacy trace dicts (from `GET /api/public/traces/{traceId}`).
+
+```python
+from agentic_eval.adapters import from_langfuse
+from agentic_eval import run_evaluation
+
+# From a list of observation dicts (v2 API / SDK)
+observations = langfuse.api.observations.get_many(
+    trace_id="your-trace-id",
+    fields="core,basic,io,usage,model",
+)
+trace = from_langfuse(observations.data)
+
+# From a legacy trace dict
+trace_data = langfuse.fetch_trace("trace-id")
+trace = from_langfuse(trace_data)
+
+result = run_evaluation(trace, skill="./SKILL.md")
+result.print()
+```
+
+**Observation type mapping:**
+
+| Langfuse type | agentic-eval type |
+|---|---|
+| `GENERATION` | `LLM_CALL` |
+| `SPAN` | `AGENT_STEP` |
+| `EVENT` | `CUSTOM` |
+| `TOOL` | `TOOL_CALL` |
+
+Names containing "retriev", "search", "rag", or "vector" are inferred as `RETRIEVAL`. Token usage and model metadata are automatically extracted.
+
+**Handles:**
+- Both camelCase (`parentObservationId`) and snake_case (`parent_observation_id`) keys
+- SDK objects with `model_dump()` (auto-converted to dicts)
+- Error-level observations (extracted from `level` field)
+- Nested parent-child hierarchies via `parentObservationId`
+
+## MLflow
+
+Converts MLflow traces and spans into agentic-eval format. Accepts MLflow `Trace` objects, serialised trace dicts, or plain span lists.
+
+```python
+from agentic_eval.adapters import from_mlflow
+from agentic_eval import run_evaluation
+
+import mlflow
+
+# From an MLflow Trace object
+mlflow_trace = mlflow.get_trace("<trace_id>")
+trace = from_mlflow(mlflow_trace)
+
+# From a serialised trace dict
+trace = from_mlflow({"info": trace_info, "data": {"spans": span_list}})
+
+# From a plain list of span dicts
+trace = from_mlflow(span_dicts)
+
+result = run_evaluation(trace, skill="./SKILL.md")
+result.print()
+```
+
+**Span type mapping:**
+
+| MLflow SpanType | agentic-eval type |
+|---|---|
+| `TOOL` | `TOOL_CALL` |
+| `RETRIEVER` | `RETRIEVAL` |
+| `LLM`, `CHAT_MODEL`, `EMBEDDING` | `LLM_CALL` |
+| `AGENT`, `CHAIN`, `WORKFLOW`, `TASK` | `AGENT_STEP` |
+| `PARSER`, `RERANKER`, `MEMORY`, `GUARDRAIL`, `EVALUATOR` | `CUSTOM` |
+
+**Handles:**
+- All 15 predefined MLflow SpanTypes plus custom strings
+- `RETRIEVER` spans with document list outputs
+- Error detection from both `status.status_code` and exception events
+- Span attributes and model metadata extraction
+- Nanosecond timestamps (OpenTelemetry-compatible)
+- SDK Span objects with `to_dict()` / `model_dump()`
+
 ## OpenTelemetry
 
 Converts OTel span exports (JSON format) into hierarchical traces.
