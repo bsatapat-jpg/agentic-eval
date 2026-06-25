@@ -1,0 +1,332 @@
+"""CLI entry point for agentic-eval."""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+import click
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from .evaluators.security import SecurityEvaluator
+from .store import ResultStore
+
+console = Console()
+
+
+@click.group()
+@click.version_option(package_name="agentic-eval")
+def main() -> None:
+    """agentic-eval: Trajectory-based evaluation for AI agent skills."""
+    pass
+
+
+@main.command()
+@click.argument("skill_path", type=click.Path(exists=True))
+@click.option("--output", "-o", type=click.Path(), help="Output JSON file path")
+@click.option("--db", type=click.Path(), default="./agentic_eval_results.db", help="Database path")
+@click.option("--fail-on", type=click.Choice(["critical", "warning", "any"]),
+              default=None, help="Exit non-zero if findings at this severity or above")
+def security(skill_path: str, output: str | None, db: str, fail_on: str | None) -> None:
+    """Scan a SKILL.md for security vulnerabilities."""
+    console.print(f"\n[bold]Scanning:[/bold] {skill_path}\n")
+
+    evaluator = SecurityEvaluator()
+    report = evaluator.scan_skill(skill_path)
+
+    _display_security_report(report)
+
+    with ResultStore(db) as store:
+        store.save_security_report(report)
+        console.print(f"\n[dim]Results saved to {db}[/dim]")
+
+    if output:
+        Path(output).write_text(
+            json.dumps(report.model_dump(), indent=2, default=str)
+        )
+        console.print(f"[dim]Report exported to {output}[/dim]")
+
+    if fail_on:
+        if fail_on == "critical" and report.critical_count > 0:
+            sys.exit(1)
+        elif fail_on == "warning" and (report.critical_count + report.warning_count) > 0:
+            sys.exit(1)
+        elif fail_on == "any" and len(report.findings) > 0:
+            sys.exit(1)
+
+
+@main.command()
+@click.option("--skill", "-s", type=str, help="Filter by skill name")
+@click.option("--verdict", "-v", type=click.Choice(["pass", "fail", "partial"]))
+@click.option("--limit", "-l", type=int, default=20)
+@click.option("--db", type=click.Path(), default="./agentic_eval_results.db")
+@click.option("--export", "-e", type=click.Path(), help="Export to JSON file")
+@click.option("--format", "output_format", type=click.Choice(["table", "json"]),
+              default="table", help="Output format")
+def results(
+    skill: str | None,
+    verdict: str | None,
+    limit: int,
+    db: str,
+    export: str | None,
+    output_format: str,
+) -> None:
+    """View evaluation results."""
+    db_path = Path(db)
+    if not db_path.exists():
+        console.print("[yellow]No results database found. Run some evaluations first.[/yellow]")
+        return
+
+    with ResultStore(db) as store:
+        stats = store.get_stats()
+        rows = store.query(skill_name=skill, verdict=verdict, limit=limit)
+
+        if output_format == "json":
+            click.echo(json.dumps({"stats": stats, "results": rows}, indent=2, default=str))
+        else:
+            _display_stats(stats)
+            if rows:
+                _display_results_table(rows)
+            else:
+                console.print("[dim]No results found matching filters.[/dim]")
+
+        if export:
+            store.export_json(export)
+            console.print(f"\n[dim]Results exported to {export}[/dim]")
+
+
+@main.command()
+@click.option("--db", type=click.Path(), default="./agentic_eval_results.db")
+@click.option("--port", "-p", type=int, default=8501)
+def dashboard(db: str, port: int) -> None:
+    """Launch the Streamlit evaluation dashboard."""
+    try:
+        import streamlit
+    except ImportError:
+        console.print(
+            "[red]Streamlit not installed.[/red] Install with: "
+            "[bold]pip install agentic-eval\\[dashboard][/bold]"
+        )
+        sys.exit(1)
+
+    import subprocess
+
+    try:
+        import dashboard
+        dashboard_app = Path(dashboard.__file__).parent / "app.py"
+    except ImportError:
+        console.print(
+            "[red]Dashboard package not found.[/red] "
+            "Ensure the dashboard/ folder is present at the project root "
+            "and the package is installed: [bold]pip install -e .[/bold]"
+        )
+        sys.exit(1)
+
+    if not dashboard_app.exists():
+        console.print("[red]Dashboard app.py not found.[/red]")
+        sys.exit(1)
+
+    console.print(f"\n[bold green]Launching dashboard[/bold green] on port {port}...")
+    subprocess.run(
+        [
+            sys.executable, "-m", "streamlit", "run",
+            str(dashboard_app),
+            "--server.port", str(port),
+            "--",
+            "--db", db,
+        ],
+        check=True,
+    )
+
+
+@main.command()
+@click.argument("skill_a", type=click.Path(exists=True))
+@click.argument("skill_b", type=click.Path(exists=True))
+@click.option("--db", type=click.Path(), default="./agentic_eval_results.db", help="Database path")
+@click.option("--format", "output_format", type=click.Choice(["table", "json"]),
+              default="table", help="Output format")
+def compare(skill_a: str, skill_b: str, db: str, output_format: str) -> None:
+    """Compare two SKILL.md files (security + metrics from stored evaluations)."""
+    console.print(f"\n[bold]Comparing:[/bold] {skill_a} vs {skill_b}\n")
+
+    evaluator = SecurityEvaluator()
+    report_a = evaluator.scan_skill(skill_a)
+    report_b = evaluator.scan_skill(skill_b)
+
+    if output_format == "json":
+        click.echo(json.dumps({
+            "skill_a": {"name": report_a.skill_name, "grade": report_a.grade,
+                        "score": report_a.score, "critical": report_a.critical_count,
+                        "warnings": report_a.warning_count, "findings": len(report_a.findings)},
+            "skill_b": {"name": report_b.skill_name, "grade": report_b.grade,
+                        "score": report_b.score, "critical": report_b.critical_count,
+                        "warnings": report_b.warning_count, "findings": len(report_b.findings)},
+            "delta": report_b.score - report_a.score,
+        }, indent=2))
+        return
+
+    sec_table = Table(title="Security Comparison")
+    sec_table.add_column("Attribute", style="cyan")
+    sec_table.add_column("Skill A", style="yellow")
+    sec_table.add_column("Skill B", style="green")
+
+    sec_table.add_row("Name", report_a.skill_name, report_b.skill_name)
+    sec_table.add_row("Grade", report_a.grade, report_b.grade)
+    sec_table.add_row("Score", f"{report_a.score:.2f}", f"{report_b.score:.2f}")
+    sec_table.add_row("Critical", str(report_a.critical_count), str(report_b.critical_count))
+    sec_table.add_row("Warnings", str(report_a.warning_count), str(report_b.warning_count))
+    sec_table.add_row("Total Findings", str(len(report_a.findings)), str(len(report_b.findings)))
+
+    console.print(sec_table)
+
+    db_path = Path(db)
+    if db_path.exists():
+        with ResultStore(db) as store:
+            from .skill_parser import parse_skill
+            spec_a = parse_skill(skill_a)
+            spec_b = parse_skill(skill_b)
+            results_a = store.query(skill_name=spec_a.name, limit=100)
+            results_b = store.query(skill_name=spec_b.name, limit=100)
+
+            if results_a and results_b:
+                avg_a = sum(r["overall_score"] for r in results_a) / len(results_a)
+                avg_b = sum(r["overall_score"] for r in results_b) / len(results_b)
+
+                eval_table = Table(title="Evaluation Comparison (from stored results)")
+                eval_table.add_column("Attribute", style="cyan")
+                eval_table.add_column("Skill A", style="yellow")
+                eval_table.add_column("Skill B", style="green")
+                eval_table.add_row("Evaluations", str(len(results_a)), str(len(results_b)))
+                eval_table.add_row("Avg Score", f"{avg_a:.3f}", f"{avg_b:.3f}")
+                eval_table.add_row("Delta", "", f"{avg_b - avg_a:+.3f}")
+                console.print(eval_table)
+
+    delta = report_b.score - report_a.score
+    if delta > 0.05:
+        console.print("\n[green bold]Verdict: Skill B is more secure[/green bold]")
+    elif delta < -0.05:
+        console.print("\n[red bold]Verdict: Skill A is more secure[/red bold]")
+    else:
+        console.print("\n[yellow bold]Verdict: Similar security profiles[/yellow bold]")
+
+
+@main.command("metrics")
+def list_metrics_cmd() -> None:
+    """List all registered evaluation metrics."""
+    from .api import list_metrics
+
+    metrics = list_metrics()
+
+    table = Table(title="Available Metrics")
+    table.add_column("Name", style="cyan")
+    table.add_column("Tier", justify="center")
+    table.add_column("Description")
+
+    tier_styles = {1: "[red]1[/red]", 2: "[yellow]2[/yellow]", 3: "[green]3[/green]"}
+
+    for m in sorted(metrics, key=lambda x: (x["tier"], x["name"])):
+        table.add_row(
+            m["name"],
+            tier_styles.get(m["tier"], str(m["tier"])),
+            m["description"],
+        )
+
+    console.print(table)
+    console.print(
+        "\n[dim]Tiers: [red]1[/red]=Non-negotiable  "
+        "[yellow]2[/yellow]=Diagnostic  "
+        "[green]3[/green]=Efficiency[/dim]"
+    )
+
+
+def _display_security_report(report) -> None:
+    """Display a security report using Rich."""
+    grade_colors = {"A": "green", "B": "blue", "C": "yellow", "D": "red", "F": "red bold"}
+    color = grade_colors.get(report.grade, "white")
+
+    console.print(
+        Panel(
+            f"[bold]Skill:[/bold] {report.skill_name}\n"
+            f"[bold]Grade:[/bold] [{color}]{report.grade}[/{color}]\n"
+            f"[bold]Score:[/bold] {report.score:.2f}/1.00\n"
+            f"[bold]Critical:[/bold] {report.critical_count}  "
+            f"[bold]Warnings:[/bold] {report.warning_count}  "
+            f"[bold]Info:[/bold] {len(report.findings) - report.critical_count - report.warning_count}",
+            title="Security Scan Results",
+        )
+    )
+
+    if report.findings:
+        table = Table(title="Findings")
+        table.add_column("Severity", style="bold")
+        table.add_column("Category")
+        table.add_column("Description")
+        table.add_column("Line", justify="right")
+        table.add_column("Recommendation")
+
+        severity_colors = {"critical": "red", "warning": "yellow", "info": "blue"}
+
+        for f in report.findings:
+            sev_color = severity_colors.get(f.severity.value, "white")
+            table.add_row(
+                f"[{sev_color}]{f.severity.value.upper()}[/{sev_color}]",
+                f.category,
+                f.description,
+                str(f.line_number or "-"),
+                f.recommendation,
+            )
+
+        console.print(table)
+    else:
+        console.print("[green]No security findings![/green]")
+
+
+def _display_stats(stats: dict) -> None:
+    """Display aggregate statistics."""
+    if not stats or stats.get("total_evals", 0) == 0:
+        return
+
+    avg_score = stats.get("avg_score") or 0.0
+
+    console.print(
+        Panel(
+            f"[bold]Total Evaluations:[/bold] {stats.get('total_evals', 0)}\n"
+            f"[bold]Average Score:[/bold] {avg_score:.3f}\n"
+            f"[bold]Passed:[/bold] [green]{stats.get('passed', 0)}[/green]  "
+            f"[bold]Failed:[/bold] [red]{stats.get('failed', 0)}[/red]\n"
+            f"[bold]Unique Skills:[/bold] {stats.get('unique_skills', 0)}",
+            title="Evaluation Stats",
+        )
+    )
+
+
+def _display_results_table(rows: list[dict]) -> None:
+    """Display results in a table."""
+    table = Table(title="Evaluation Results")
+    table.add_column("ID", style="dim", max_width=8)
+    table.add_column("Skill", style="cyan")
+    table.add_column("Verdict", style="bold")
+    table.add_column("Score", justify="right")
+    table.add_column("Timestamp", style="dim")
+
+    verdict_colors = {"pass": "green", "fail": "red", "partial": "yellow"}
+
+    for row in rows:
+        v = row.get("verdict", "")
+        v_color = verdict_colors.get(v, "white")
+        table.add_row(
+            row.get("id", "")[:8],
+            row.get("skill_name", ""),
+            f"[{v_color}]{v.upper()}[/{v_color}]",
+            f"{row.get('overall_score', 0):.3f}",
+            row.get("timestamp", "")[:19],
+        )
+
+    console.print(table)
+
+
+if __name__ == "__main__":
+    main()
