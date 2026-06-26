@@ -1,8 +1,16 @@
 # Security Scanning
 
-agentic-eval includes a security scanner that analyzes SKILL.md files for vulnerabilities that could be exploited by adversarial inputs or lead to unsafe agent behavior.
+> Catch prompt injection, credential exposure, and unsafe patterns **before** they reach production.
+
+agentic-eval includes a security scanner that analyses SKILL.md files for vulnerabilities that could be exploited by adversarial inputs or lead to unsafe agent behaviour.
+
+<br>
+
+---
 
 ## Quick Start
+
+**Python:**
 
 ```python
 from agentic_eval import scan_security
@@ -14,102 +22,121 @@ print(f"Critical: {report.critical_count}")
 print(f"Warnings: {report.warning_count}")
 ```
 
-From the CLI:
+**CLI:**
 
 ```bash
 agentic-eval security ./SKILL.md
 agentic-eval security ./SKILL.md --output report.json
-agentic-eval security ./SKILL.md --fail-on critical  # CI exit code
+agentic-eval security ./SKILL.md --fail-on critical
 ```
+
+<br>
+
+---
 
 ## What Gets Scanned
 
-### Prompt Injection (Critical)
+### Prompt Injection — `Critical`
 
-Patterns that could be used to override agent instructions:
+| Pattern | Examples |
+|:---|:---|
+| Instruction override | "ignore all previous instructions" |
+| Rule amnesia | "forget your rules/guidelines" |
+| Identity hijack | "you are a different/unrestricted agent" |
+| Fake system prompts | `system: you must...` |
+| XML tag injection | `<system>`, `<instruction>` |
+| Rule bypass | "don't follow the rules" |
 
-- "ignore all previous instructions"
-- "forget your rules/guidelines"
-- "you are a different/unrestricted agent"
-- Fake system prompts (`system: you must...`)
-- XML tag injection (`<system>`, `<instruction>`)
-- Rule bypass ("don't follow the rules")
+### Credential Exposure — `Critical / Warning`
 
-### Credential Exposure (Critical/Warning)
+| Pattern | Examples |
+|:---|:---|
+| Hardcoded secrets | API keys, tokens, passwords in plaintext |
+| Key patterns | `sk-`, `pk-`, `Bearer` prefixes |
+| Password references | Plaintext password strings |
 
-- Hardcoded API keys, tokens, or passwords
-- API key patterns (`sk-`, `pk-`, `Bearer`)
-- Password references in plaintext
+### Unsafe Commands — `Critical / Warning / Info`
 
-### Unsafe Commands (Critical/Warning/Info)
+| Pattern | Severity |
+|:---|:---:|
+| Destructive commands (`rm -rf`, `del /S`) | Critical |
+| Privileged access (`sudo`, `chmod 777`) | Warning |
+| Dynamic code execution (`eval()`, `exec()`) | Warning |
+| External network (`curl`, `wget`) | Info |
+| Runtime installs (`pip install`) | Info |
 
-- Destructive commands (`rm -rf`, `del /S`)
-- Privileged access (`sudo`, `chmod 777`)
-- Dynamic code execution (`eval()`, `exec()`)
-- External network requests (`curl`, `wget`)
-- Runtime package installation (`pip install`)
+### Over-Permissive Instructions — `Warning / Critical`
 
-### Over-Permissive Instructions (Warning/Critical)
+| Pattern | Examples |
+|:---|:---|
+| Unrestricted file access | "access any file" |
+| No restrictions | "without limitations" |
+| Arbitrary execution | "execute any code" |
 
-- Unrestricted file access ("access any file")
-- No restrictions declared ("without limitations")
-- Arbitrary code execution ("execute any code")
+### Missing Guardrails — `Info`
 
-### Missing Guardrails (Info)
+| Check | What's missing |
+|:---|:---|
+| No constraints section | No guardrails or rules defined |
+| No workflow steps | No explicit procedure documented |
 
-- No constraints/guardrails section defined
-- No explicit workflow steps
+<br>
 
-## Severity Levels
+---
 
-| Severity | Impact on Score | Meaning |
-|---|---|---|
-| Critical | -25 points | Immediate security risk |
-| Warning | -10 points | Potential vulnerability |
-| Info | -2 points | Best practice suggestion |
+## Scoring
 
-## Grading Scale
+| Severity | Score impact |
+|:---:|:---|
+| **Critical** | -25 points |
+| **Warning** | -10 points |
+| **Info** | -2 points |
 
-| Grade | Score Range |
-|---|---|
-| A | 90-100% |
-| B | 80-89% |
-| C | 70-79% |
-| D | 60-69% |
-| F | Below 60% |
+| Grade | Score range |
+|:---:|:---:|
+| **A** | 90 – 100% |
+| **B** | 80 – 89% |
+| **C** | 70 – 79% |
+| **D** | 60 – 69% |
+| **F** | Below 60% |
+
+<br>
+
+---
 
 ## CI/CD Integration
 
 Use `--fail-on` to exit non-zero when findings are detected:
 
 ```bash
-# Fail on critical findings only
-agentic-eval security ./SKILL.md --fail-on critical
-
-# Fail on critical or warning findings
-agentic-eval security ./SKILL.md --fail-on warning
-
-# Fail on any finding
-agentic-eval security ./SKILL.md --fail-on any
+agentic-eval security ./SKILL.md --fail-on critical   # critical only
+agentic-eval security ./SKILL.md --fail-on warning     # critical + warnings
+agentic-eval security ./SKILL.md --fail-on any         # any finding
 ```
+
+<br>
+
+---
 
 ## Persisting Reports
 
-Reports are automatically saved to the database:
-
 ```python
-from agentic_eval import scan_security
+from agentic_eval import scan_security, ResultStore
 
+# Save automatically
 report = scan_security("./SKILL.md", save=True, db_path="./results.db")
-```
 
-View saved reports:
-
-```python
-from agentic_eval import ResultStore
-
+# View saved reports
 with ResultStore("./results.db") as store:
     reports = store.get_security_reports()
     for r in reports:
         print(f"{r['skill_name']}: Grade {r['grade']}")
 ```
+
+<br>
+
+---
+
+<p align="center">
+  <a href="getting-started.md">Getting Started</a> · <a href="skill-format.md">SKILL.md Format</a> · <a href="comparison.md">Comparison</a> · <a href="cli.md">CLI</a>
+</p>

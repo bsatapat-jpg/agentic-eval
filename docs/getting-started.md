@@ -1,24 +1,39 @@
 # Getting Started
 
+> From zero to evaluating your first agent in under 5 minutes.
+
+<br>
+
 ## Installation
 
 ```bash
 pip install agentic-eval
 ```
 
-With optional features:
+<details>
+<summary><strong>Optional extras</strong></summary>
 
-```bash
-pip install agentic-eval[llm]        # LLM-as-judge (OpenAI/Anthropic)
-pip install agentic-eval[dashboard]  # Streamlit dashboard
-pip install agentic-eval[all]        # Everything
-```
+| Extra | What it adds |
+|:---|:---|
+| `pip install agentic-eval[llm]` | LLM-as-judge scoring (OpenAI / Anthropic) |
+| `pip install agentic-eval[dashboard]` | Streamlit visualization dashboard |
+| `pip install agentic-eval[all]` | Everything above |
 
-## Quick Start
+</details>
 
-### Decorator API (simplest)
+<br>
 
-Wrap your agent function with `@evaluate` — it captures the full execution trace and runs all 11 metrics automatically.
+---
+
+## Choose Your Style
+
+agentic-eval offers **five ways** to evaluate agents. Pick the one that fits your workflow.
+
+<br>
+
+### Decorator API — *simplest*
+
+Wrap your agent function with `@evaluate`. It captures the full execution trace and runs all 11 metrics automatically.
 
 ```python
 from agentic_eval import evaluate, record_tool_call
@@ -29,12 +44,16 @@ def my_agent(query: str) -> str:
     return "Done!"
 
 result = my_agent("find the bug")
-my_agent.last_eval.print()  # Rich console output
+my_agent.last_eval.print()  # Rich console output with per-metric breakdown
 ```
 
-### Functional API (most flexible)
+> **What happens:** The decorator creates a trace, wraps your function, captures tool calls, evaluates against your SKILL.md, and stores the result — all in one line.
 
-Use `trace_context` to manually capture traces, then evaluate them separately.
+<br>
+
+### Functional API — *most flexible*
+
+Use `trace_context` to manually capture traces, then evaluate them separately. Best when you need full control.
 
 ```python
 from agentic_eval import run_evaluation, Trace, record_tool_call, trace_context
@@ -48,7 +67,9 @@ result = run_evaluation(trace, skill="./SKILL.md")
 result.print()
 ```
 
-### Async Agent Support
+<br>
+
+### Async Support — *automatic*
 
 Both decorators detect async functions automatically — no extra configuration needed.
 
@@ -61,9 +82,11 @@ async def my_async_agent(query: str) -> str:
     return result
 ```
 
-### pytest Integration
+<br>
 
-Use `assert_skill` for test assertions with per-metric thresholds.
+### pytest Integration — *for CI/CD*
+
+Use `assert_skill` for test assertions with per-metric thresholds. If any metric falls below its threshold, the test fails with a detailed breakdown.
 
 ```python
 from agentic_eval import assert_skill
@@ -81,9 +104,11 @@ def test_code_review_skill():
     )
 ```
 
-### Batch Evaluation
+<br>
 
-Evaluate multiple traces at once for regression testing.
+### Batch Evaluation — *for regression testing*
+
+Evaluate multiple traces at once. Ideal for nightly regression suites.
 
 ```python
 from agentic_eval import batch_evaluate
@@ -99,9 +124,13 @@ pass_rate = sum(1 for r in results if r.verdict.value == "pass") / len(results)
 print(f"Pass rate: {pass_rate:.0%}")
 ```
 
-### Callbacks & Auto-Save
+<br>
 
-Hook into evaluation results for CI/CD notifications and automatic persistence.
+---
+
+## Callbacks & Auto-Save
+
+Hook into evaluation results for notifications and automatic persistence.
 
 ```python
 def on_eval_done(result):
@@ -118,9 +147,16 @@ def my_agent(query: str) -> str:
     ...
 ```
 
-## Next Steps
+<br>
 
-- [Metrics Reference](metrics.md) — All 11 metrics explained in detail
-- [Framework Adapters](adapters.md) — Import traces from Gemini, LangChain, OpenAI, OTel
-- [Custom Metrics](custom-metrics.md) — Build your own evaluation metrics
-- [CLI Reference](cli.md) — Command-line interface
+---
+
+## What's Next?
+
+| | Guide | Learn about |
+|:---|:---|:---|
+| **Metrics** | [Metrics Reference](metrics.md) | All 11 metrics — sub-scores, weights, examples |
+| **Integrate** | [Integration Guide](integration-guide.md) | YAML config, HTTP eval, CI/CD, architecture examples |
+| **Adapters** | [Framework Adapters](adapters.md) | Import traces from Gemini, LangGraph, Langfuse, MLflow |
+| **Extend** | [Custom Metrics](custom-metrics.md) | Build your own evaluation metrics |
+| **CLI** | [CLI Reference](cli.md) | Command-line interface |

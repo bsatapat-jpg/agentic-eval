@@ -1,23 +1,27 @@
 # Integration Guide
 
-This guide shows how to integrate agentic-eval into your agent project, regardless of your architecture.
+> Get agentic-eval into your project in minutes — regardless of your architecture.
 
-## Overview
+<br>
 
-There are **four integration patterns** depending on your setup:
+## Choose Your Pattern
 
-| Pattern | When to use | Effort |
-|---|---|---|
-| [Config-driven (YAML)](#1-config-driven-yaml) | CI/CD pipelines, standardised evaluation | 5 min |
-| [Adapter import](#2-adapter-import) | You already have traces in Langfuse/MLflow/OTel | 5 min |
-| [Decorator wrap](#3-decorator-wrap) | You own the agent code and want inline evaluation | 10 min |
-| [HTTP live evaluation](#4-http-live-evaluation) | Agent runs behind an API, no code changes | 10 min |
+| # | Pattern | When to use | Effort |
+|:---:|:---|:---|:---:|
+| 1 | [Config-driven (YAML)](#1-config-driven-yaml) | CI/CD pipelines, standardised evaluation | ~5 min |
+| 2 | [Adapter import](#2-adapter-import) | You already have traces in Langfuse / MLflow / OTel | ~5 min |
+| 3 | [Decorator wrap](#3-decorator-wrap) | You own the agent code and want inline evaluation | ~10 min |
+| 4 | [HTTP live evaluation](#4-http-live-evaluation) | Agent runs behind an API, no code changes needed | ~10 min |
+
+<br>
 
 ---
 
 ## 1. Config-Driven (YAML)
 
-Create an `agentic-eval.yaml` at your project root. This is the recommended approach for CI/CD.
+> Recommended for CI/CD. Zero Python required.
+
+Create an `agentic-eval.yaml` at your project root:
 
 ```yaml
 project: my-agent
@@ -32,24 +36,18 @@ skills:
       task_completion: 1.0
 
 metrics:
-  enabled:
-    - task_completion
-    - groundedness
-    - hallucination
-    - tool_response_alignment
+  enabled: [task_completion, groundedness, hallucination, tool_response_alignment]
   weights:
     task_completion: 0.25
     groundedness: 0.25
     hallucination: 0.25
     tool_response_alignment: 0.25
-  use_llm_judge: false
 
 agent:
   url: http://localhost:8000/api/chat
   method: POST
   headers:
     Authorization: "Bearer ${AUTH_TOKEN}"
-    Content-Type: application/json
   body_template:
     messages:
       - role: user
@@ -63,29 +61,27 @@ test_cases:
     expected_tools: ["rag_search"]
   - input: "Show me Q3 pipeline numbers"
     expected_tools: ["salesforce_query"]
-  - input: "Summarise the latest security advisory"
-    skill: ./skills/summarise/SKILL.md
 
 ci:
   fail_below: 0.7
   fail_on_any_metric_below: 0.4
   save: true
-  db_path: ./eval_results.db
   output_file: ./eval_report.json
 ```
 
 Then run:
 
 ```bash
-agentic-eval ci                        # auto-finds agentic-eval.yaml
+agentic-eval ci                         # auto-finds agentic-eval.yaml
 agentic-eval ci --config ./custom.yaml  # explicit path
-agentic-eval ci --fail-below 0.8       # override threshold
-agentic-eval ci --format json          # JSON output for CI parsing
+agentic-eval ci --fail-below 0.8        # override threshold
+agentic-eval ci --format json           # machine-readable output
 ```
 
-### Environment Variable Interpolation
+<details>
+<summary><strong>Environment variable interpolation</strong></summary>
 
-Use `${VAR_NAME}` in any string value — headers, URLs, body templates:
+Use `${VAR_NAME}` in any string value:
 
 ```yaml
 agent:
@@ -94,11 +90,14 @@ agent:
     Authorization: "Bearer ${API_TOKEN}"
 ```
 
-### Config Schema Reference
+</details>
+
+<details>
+<summary><strong>Full config schema reference</strong></summary>
 
 | Key | Type | Description |
-|---|---|---|
-| `project` | string | Project name (for display/reports) |
+|:---|:---|:---|
+| `project` | string | Project name (for display / reports) |
 | `skills[].path` | string | Path to SKILL.md file |
 | `skills[].thresholds` | dict | Per-metric pass thresholds |
 | `skills[].weights` | dict | Per-metric score weights |
@@ -121,13 +120,18 @@ agent:
 | `ci.db_path` | string | Database file path |
 | `ci.output_file` | string | Write JSON report to this file |
 
+</details>
+
+<br>
+
 ---
 
 ## 2. Adapter Import
 
-If your agent already produces traces in an observability platform, import them directly.
+> Already have traces? Import them directly.
 
-### From Langfuse
+<details>
+<summary><strong>From Langfuse</strong></summary>
 
 ```python
 from langfuse import get_client
@@ -136,16 +140,17 @@ from agentic_eval import run_evaluation
 
 langfuse = get_client()
 observations = langfuse.api.observations.get_many(
-    trace_id="your-trace-id",
-    fields="core,basic,io,usage,model",
+    trace_id="your-trace-id", fields="core,basic,io,usage,model",
 )
 trace = from_langfuse(observations.data)
-
-result = run_evaluation(trace, skill="./skills/SKILL.md")
+result = run_evaluation(trace, skill="./SKILL.md")
 result.print()
 ```
 
-### From MLflow
+</details>
+
+<details>
+<summary><strong>From MLflow</strong></summary>
 
 ```python
 import mlflow
@@ -154,63 +159,63 @@ from agentic_eval import run_evaluation
 
 mlflow_trace = mlflow.get_trace("<trace_id>")
 trace = from_mlflow(mlflow_trace)
-
 result = run_evaluation(trace, skill="./SKILL.md")
 result.print()
 ```
 
-### From LangGraph State
+</details>
+
+<details>
+<summary><strong>From LangGraph state</strong></summary>
 
 ```python
 from agentic_eval.adapters import from_langgraph
 from agentic_eval import run_evaluation
 
-# After running a LangGraph agent
 final_state = await graph.ainvoke({"messages": [HumanMessage("query")]})
 trace = from_langgraph(final_state)
-
 result = run_evaluation(trace, skill="./SKILL.md")
 result.print()
 ```
 
-### From LangGraph Streaming Events
+</details>
+
+<details>
+<summary><strong>From LangGraph streaming events</strong></summary>
 
 ```python
 from agentic_eval.adapters import from_langgraph
 
-events = []
-async for event in graph.astream_events(input_data, version="v2"):
-    events.append(event)
-
+events = [e async for e in graph.astream_events(input_data, version="v2")]
 trace = from_langgraph(events)
 result = run_evaluation(trace, skill="./SKILL.md")
 ```
 
-### From OpenTelemetry Spans
+</details>
+
+<details>
+<summary><strong>From OpenTelemetry / Gemini / OpenAI</strong></summary>
 
 ```python
-from agentic_eval.adapters import from_otel
+from agentic_eval.adapters import from_otel, from_gemini, from_openai
 
 trace = from_otel(exported_spans)
-result = run_evaluation(trace, skill="./SKILL.md")
-```
-
-### From Gemini API
-
-```python
-from agentic_eval.adapters import from_gemini
-
 trace = from_gemini(chat.history, model="gemini-2.0-flash")
-result = run_evaluation(trace, skill="./SKILL.md")
+trace = from_openai(messages=conversation)
 ```
+
+</details>
+
+<br>
 
 ---
 
 ## 3. Decorator Wrap
 
-If you own the agent code, wrap your agent function for automatic trace capture.
+> Own the code? Wrap it.
 
-### Simple Agent
+<details>
+<summary><strong>Simple agent</strong></summary>
 
 ```python
 from agentic_eval import evaluate, record_tool_call
@@ -224,23 +229,26 @@ result = my_agent("find the bug")
 my_agent.last_eval.print()
 ```
 
-### LangChain Agent
+</details>
+
+<details>
+<summary><strong>LangChain agent</strong></summary>
 
 ```python
 from agentic_eval import evaluate, record_tool_call, record_llm_call
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def langchain_agent(query: str) -> str:
-    # Your LangChain code here
     chain = prompt | llm | output_parser
-    
     record_llm_call(input=query, output="...", model="gpt-4")
     record_tool_call("retriever", arguments={"query": query}, result="docs...")
-    
     return chain.invoke({"query": query})
 ```
 
-### Async Agent (FastAPI, LangGraph, etc.)
+</details>
+
+<details>
+<summary><strong>Async agent (FastAPI, LangGraph, etc.)</strong></summary>
 
 ```python
 from agentic_eval import evaluate
@@ -251,18 +259,19 @@ async def async_agent(query: str) -> str:
     return result
 ```
 
-### With Callbacks for CI/CD
+</details>
+
+<details>
+<summary><strong>With callbacks for CI/CD</strong></summary>
 
 ```python
 def on_eval_done(result):
     if result.verdict.value == "fail":
         notify_slack(f"FAILED: {result.overall_score:.1%}")
-    # Send to your metrics pipeline
     datadog.gauge("agent.eval_score", result.overall_score)
 
 @evaluate(
-    skill="./SKILL.md",
-    auto_save=True,
+    skill="./SKILL.md", auto_save=True,
     on_complete=on_eval_done,
     thresholds={"task_completion": 1.0, "groundedness": 0.8},
 )
@@ -270,13 +279,15 @@ def my_agent(query: str) -> str:
     ...
 ```
 
+</details>
+
+<br>
+
 ---
 
 ## 4. HTTP Live Evaluation
 
-Evaluate a running agent without modifying its code — just point to its API.
-
-### Python API
+> No code changes. Just point to the API.
 
 ```python
 from agentic_eval import AgentEvaluator
@@ -284,9 +295,7 @@ from agentic_eval import AgentEvaluator
 evaluator = AgentEvaluator(
     url="http://localhost:8000/api/chat",
     headers={"Authorization": "Bearer <token>"},
-    body_template={
-        "messages": [{"role": "user", "content": "${query}"}],
-    },
+    body_template={"messages": [{"role": "user", "content": "${query}"}]},
     response_path="output.content",
 )
 
@@ -303,7 +312,8 @@ for r in results:
     r.print()
 ```
 
-### LangGraph Streaming API
+<details>
+<summary><strong>LangGraph streaming API example</strong></summary>
 
 ```python
 evaluator = AgentEvaluator(
@@ -312,14 +322,15 @@ evaluator = AgentEvaluator(
     headers={"Authorization": "Bearer ${AUTH_TOKEN}"},
     body_template={
         "assistant_id": "my_assistant",
-        "input": {
-            "messages": [{"role": "user", "content": "${query}"}],
-        },
+        "input": {"messages": [{"role": "user", "content": "${query}"}]},
     },
 )
 ```
 
-### From Config
+</details>
+
+<details>
+<summary><strong>From YAML config</strong></summary>
 
 ```python
 from agentic_eval import load_config
@@ -327,23 +338,26 @@ from agentic_eval.agent_evaluator import from_config
 
 config = load_config("./agentic-eval.yaml")
 evaluator = from_config(config)
-
 results = evaluator.evaluate(
     test_cases=config.test_cases,
     skill=config.skills[0].path if config.skills else None,
 )
 ```
 
+</details>
+
+<br>
+
 ---
 
 ## Architecture-Specific Examples
 
-### Aegra / LangGraph Platform
+<details>
+<summary><strong>Aegra / LangGraph Platform</strong></summary>
 
 ```yaml
 # agentic-eval.yaml
 project: sales-assistant-v2
-
 agent:
   url: http://localhost:2026/sales-assistant/threads/{thread_id}/runs
   method: POST
@@ -352,42 +366,38 @@ agent:
   body_template:
     assistant_id: sales_assistant_v2
     input:
-      messages:
-        - role: user
-          content: "${query}"
-    stream_mode: ["values"]
-
+      messages: [{ role: user, content: "${query}" }]
 skills:
   - path: ./skills/salesforce-query/SKILL.md
-    thresholds:
-      task_completion: 0.9
-      tool_response_alignment: 0.7
-
+    thresholds: { task_completion: 0.9, tool_response_alignment: 0.7 }
 test_cases:
   - input: "What deals closed this quarter?"
     expected_tools: ["salesforce_query"]
-  - input: "Tell me about OpenShift pricing"
-    expected_tools: ["rag_search"]
 ```
 
-### CrewAI
+</details>
+
+<details>
+<summary><strong>CrewAI</strong></summary>
 
 ```python
-from crewai import Crew, Agent, Task
-from agentic_eval import evaluate, record_tool_call
+from crewai import Crew
+from agentic_eval import evaluate
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def run_crew(query: str) -> str:
     crew = Crew(agents=[...], tasks=[...])
-    result = crew.kickoff(inputs={"query": query})
-    return str(result)
+    return str(crew.kickoff(inputs={"query": query}))
 ```
 
-### AutoGen
+</details>
+
+<details>
+<summary><strong>AutoGen</strong></summary>
 
 ```python
 from autogen import AssistantAgent, UserProxyAgent
-from agentic_eval import trace_context, record_tool_call, run_evaluation
+from agentic_eval import trace_context, run_evaluation
 
 with trace_context(input=query) as trace:
     assistant = AssistantAgent("assistant", llm_config={...})
@@ -398,18 +408,19 @@ with trace_context(input=query) as trace:
 result = run_evaluation(trace, skill="./SKILL.md")
 ```
 
-### Custom Agent Loop
+</details>
+
+<details>
+<summary><strong>Custom agent loop</strong></summary>
 
 ```python
 from agentic_eval import trace_context, record_tool_call, record_llm_call, run_evaluation
 
 with trace_context(input=query) as trace:
     messages = [{"role": "user", "content": query}]
-    
     while True:
         response = llm.chat(messages)
         record_llm_call(input=messages, output=response.content, model="gpt-4o")
-        
         if response.tool_calls:
             for tc in response.tool_calls:
                 result = execute_tool(tc.name, tc.args)
@@ -422,36 +433,35 @@ with trace_context(input=query) as trace:
 result = run_evaluation(trace, skill="./SKILL.md")
 ```
 
+</details>
+
+<br>
+
 ---
 
 ## CI/CD Integration
 
-### GitHub Actions
+<details>
+<summary><strong>GitHub Actions</strong></summary>
 
 ```yaml
 name: Agent Evaluation
 on: [push, pull_request]
-
 jobs:
   evaluate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - name: Start agent
         run: docker compose up -d
-      
       - name: Wait for agent
         run: sleep 10
-      
       - name: Install agentic-eval
         run: pip install agentic-eval
-      
       - name: Run evaluation
         env:
           AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
         run: agentic-eval ci --format json
-      
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -460,7 +470,10 @@ jobs:
           path: eval_report.json
 ```
 
-### GitLab CI
+</details>
+
+<details>
+<summary><strong>GitLab CI</strong></summary>
 
 ```yaml
 evaluate:
@@ -469,72 +482,72 @@ evaluate:
     - pip install agentic-eval
     - agentic-eval ci --config ./agentic-eval.yaml --format json
   artifacts:
-    paths:
-      - eval_report.json
+    paths: [eval_report.json]
     when: always
   variables:
     AUTH_TOKEN: $AUTH_TOKEN
 ```
 
-### pytest Integration
+</details>
+
+<details>
+<summary><strong>pytest</strong></summary>
 
 ```python
-# tests/test_agent_skills.py
 from agentic_eval import assert_skill
 
 def test_search_skill():
     result = my_agent("find the bug in auth.py")
     assert_skill(
-        actual=result,
-        skill="./skills/search/SKILL.md",
-        thresholds={
-            "task_completion": 1.0,
-            "tool_selection": 0.8,
-            "groundedness": 0.7,
-        },
+        actual=result, skill="./skills/search/SKILL.md",
+        thresholds={"task_completion": 1.0, "tool_selection": 0.8, "groundedness": 0.7},
     )
 
 def test_no_hallucination():
     result = my_agent("what is our SLA?")
-    assert_skill(
-        actual=result,
-        skill="./skills/policy/SKILL.md",
-        thresholds={"hallucination": 0.9},
-    )
+    assert_skill(actual=result, skill="./skills/policy/SKILL.md",
+                 thresholds={"hallucination": 0.9})
 ```
+
+</details>
+
+<br>
 
 ---
 
-## Migration from Existing Evaluation
+## Migration
 
-### If you use an external eval pipeline
-
-Replace or augment it:
+<details>
+<summary><strong>From an external eval pipeline</strong></summary>
 
 ```bash
 # Before
 curl -X POST $EVAL_PIPELINE_URL -d '{"agent_url": "...", "dataset": "..."}'
 
-# After (in addition to or replacing the above)
+# After
 agentic-eval ci
 ```
 
-### If you use DeepEval
+</details>
+
+<details>
+<summary><strong>From DeepEval</strong></summary>
 
 agentic-eval is complementary — it evaluates the *trajectory*, not just output:
 
 ```python
-# DeepEval: output-only evaluation
+# DeepEval: output-only
 from deepeval.metrics import GEval
 
-# agentic-eval: trajectory evaluation (tool calls, steps, grounding)
+# agentic-eval: trajectory (tool calls, steps, grounding)
 from agentic_eval import run_evaluation
 result = run_evaluation(trace, skill="./SKILL.md")
 ```
 
-### If you use LangSmith
+</details>
 
-Import your existing LangSmith traces:
+<details>
+<summary><strong>From LangSmith</strong></summary>
 
 ```python
 from langsmith import Client
@@ -542,9 +555,17 @@ from agentic_eval.adapters import from_langchain
 from agentic_eval import run_evaluation
 
 client = Client()
-runs = client.list_runs(project_name="my-project")
-
-for run in runs:
+for run in client.list_runs(project_name="my-project"):
     trace = from_langchain(run.dict())
     result = run_evaluation(trace, skill="./SKILL.md")
 ```
+
+</details>
+
+<br>
+
+---
+
+<p align="center">
+  <a href="getting-started.md">Getting Started</a> · <a href="adapters.md">Adapters</a> · <a href="cli.md">CLI</a> · <a href="architecture.md">Architecture</a>
+</p>
