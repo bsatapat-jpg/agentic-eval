@@ -1,6 +1,10 @@
 # Dashboard
 
-agentic-eval includes a Streamlit-based dashboard for exploring evaluation results visually.
+> Explore your evaluation results visually with an interactive Streamlit dashboard.
+
+<br>
+
+---
 
 ## Setup
 
@@ -23,34 +27,65 @@ import subprocess
 subprocess.run(["agentic-eval", "dashboard", "--port", "8501"])
 ```
 
+<br>
+
+---
+
 ## Pages
 
 ### Overview
 
-Aggregate view of all evaluations:
-- Total evaluations, pass rate, average score
-- Score trend over time
-- Per-skill breakdown
-- Verdict distribution (pass / fail / partial)
+> The big picture at a glance.
+
+| Widget | What it shows |
+|:---|:---|
+| Score cards | Total evaluations, pass rate, average score |
+| Trend chart | Score over time |
+| Skill breakdown | Per-skill pass/fail/partial distribution |
+| Verdict pie | Overall verdict distribution |
+
+<br>
 
 ### Trajectory Viewer
 
-Drill into individual traces:
-- Tree visualization of spans (tool calls, LLM calls, errors)
-- Per-metric score breakdown
-- Timeline view with durations
-- Input/output inspection
+> Drill into individual agent runs.
+
+| Widget | What it shows |
+|:---|:---|
+| Span tree | Hierarchical visualization of tool calls, LLM calls, and errors |
+| Metric breakdown | Per-metric score bar chart |
+| Timeline | Duration-based timeline of spans |
+| I/O inspector | Input and output for each span |
+
+<br>
 
 ### Comparison
 
-Side-by-side skill version analysis:
-- Per-metric score comparison
-- Lift calculation
-- Verdict history
+> Side-by-side skill version analysis.
+
+| Widget | What it shows |
+|:---|:---|
+| Score comparison | Per-metric scores for Skill A vs Skill B |
+| Lift indicator | Overall improvement or regression |
+| Verdict history | Pass/fail trend per version |
+
+<br>
 
 ### Security
 
-Security scan results:
-- Grade and score trends
-- Finding breakdown by severity
-- Per-skill security comparison
+> Security scan results at a glance.
+
+| Widget | What it shows |
+|:---|:---|
+| Grade card | Current security grade and score |
+| Trend chart | Grade over time |
+| Finding table | Breakdown by severity (critical / warning / info) |
+| Skill comparison | Security scores across skills |
+
+<br>
+
+---
+
+<p align="center">
+  <a href="getting-started.md">Getting Started</a> · <a href="cli.md">CLI</a> · <a href="metrics.md">Metrics</a> · <a href="architecture.md">Architecture</a>
+</p>

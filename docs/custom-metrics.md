@@ -1,10 +1,14 @@
 # Custom Metrics
 
-Extend agentic-eval with your own evaluation metrics.
+> Extend agentic-eval with metrics that matter to **your** use case.
+
+<br>
+
+---
 
 ## Creating a Custom Metric
 
-Subclass `BaseMetric` and implement the `score` method:
+Subclass `BaseMetric`, implement `score()`, and register it:
 
 ```python
 from agentic_eval import BaseMetric, MetricResult, register_metric
@@ -16,7 +20,7 @@ class LatencyMetric(BaseMetric):
 
     def score(self, trajectory, skill_spec=None, expected_output=None):
         duration = trajectory.duration_ms or 0
-        score = max(0, 1.0 - (duration / 30000))  # Penalize > 30s
+        score = max(0, 1.0 - (duration / 30000))
         return MetricResult(
             metric_name=self.name,
             score=score,
@@ -28,13 +32,19 @@ class LatencyMetric(BaseMetric):
 register_metric(LatencyMetric())
 ```
 
-## BaseMetric Interface
+> Once registered, your metric is available everywhere — `run_evaluation()`, `@evaluate`, `assert_skill`, and the dashboard.
+
+<br>
+
+---
+
+## The BaseMetric Interface
 
 ```python
 class BaseMetric(ABC):
-    name: str = "base_metric"       # Unique metric identifier
+    name: str = "base_metric"       # Unique identifier
     description: str = ""           # Human-readable description
-    tier: int = 1                   # 1=non-negotiable, 2=diagnostic, 3=efficiency
+    tier: int = 1                   # 1 = non-negotiable, 2 = diagnostic, 3 = efficiency
 
     @abstractmethod
     def score(
@@ -46,10 +56,12 @@ class BaseMetric(ABC):
         ...
 ```
 
+<br>
+
 ## MetricResult Fields
 
 | Field | Type | Description |
-|---|---|---|
+|:---|:---|:---|
 | `metric_name` | `str` | Must match the metric's `name` |
 | `score` | `float` | Score between 0.0 and 1.0 |
 | `passed` | `bool` | Whether the metric passed its threshold |
@@ -57,9 +69,13 @@ class BaseMetric(ABC):
 | `details` | `dict` | Arbitrary structured data for debugging |
 | `threshold` | `float \| None` | Pass/fail threshold (set by evaluator) |
 
-## Using Custom Metrics in Evaluation
+<br>
 
-Once registered, custom metrics are available everywhere:
+---
+
+## Using Custom Metrics
+
+Once registered, custom metrics work everywhere:
 
 ```python
 # In run_evaluation
@@ -73,6 +89,10 @@ def my_agent(query):
 # In assert_skill
 assert_skill(actual=result, thresholds={"latency": 0.8})
 ```
+
+<br>
+
+---
 
 ## Example: Token Cost Metric
 
@@ -110,6 +130,10 @@ class TokenCostMetric(BaseMetric):
 register_metric(TokenCostMetric())
 ```
 
+<br>
+
+---
+
 ## Custom Weights
 
 Override default metric weights when evaluating:
@@ -126,3 +150,11 @@ result = run_evaluation(
     },
 )
 ```
+
+<br>
+
+---
+
+<p align="center">
+  <a href="getting-started.md">Getting Started</a> · <a href="metrics.md">Metrics</a> · <a href="adapters.md">Adapters</a> · <a href="architecture.md">Architecture</a>
+</p>
