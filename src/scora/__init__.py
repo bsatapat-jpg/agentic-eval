@@ -1,8 +1,8 @@
-"""agentic-eval: Trajectory-based evaluation framework for AI agent skills.
+"""scora: Trajectory-based evaluation framework for AI agent skills.
 
 Quick start:
 
-    from agentic_eval import evaluate, run_evaluation, Trace
+    from scora import evaluate, run_evaluation, Trace
 
     # Decorator approach
     @evaluate(skill="./SKILL.md", auto_save=True)

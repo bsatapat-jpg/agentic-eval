@@ -1,7 +1,7 @@
-"""Adapter for converting OpenAI Agents SDK traces to agentic-eval format.
+"""Adapter for converting OpenAI Agents SDK traces to scora format.
 
 Usage:
-    from agentic_eval.adapters import from_openai
+    from scora.adapters import from_openai
 
     # From OpenAI response with tool calls
     trace = from_openai(messages, response)

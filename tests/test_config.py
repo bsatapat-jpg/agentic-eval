@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from agentic_eval.config import EvalConfig, load_config, _expand_env, _parse_config
+from scora.config import EvalConfig, load_config, _expand_env, _parse_config
 
 
 class TestExpandEnv:
@@ -104,7 +104,7 @@ class TestParseConfig:
 class TestLoadConfig:
     def test_load_from_file(self, tmp_path):
         pytest.importorskip("yaml")
-        config_file = tmp_path / "agentic-eval.yaml"
+        config_file = tmp_path / "scora.yaml"
         config_file.write_text(
             "project: test\n"
             "skills:\n"
@@ -122,7 +122,7 @@ class TestLoadConfig:
     def test_env_interpolation_in_file(self, tmp_path, monkeypatch):
         pytest.importorskip("yaml")
         monkeypatch.setenv("MY_URL", "http://localhost:9000")
-        config_file = tmp_path / "agentic-eval.yaml"
+        config_file = tmp_path / "scora.yaml"
         config_file.write_text(
             "project: test\n"
             "agent:\n"
@@ -143,7 +143,7 @@ class TestLoadConfig:
 
 class TestAgentEvaluator:
     def test_build_request(self):
-        from agentic_eval.agent_evaluator import AgentEvaluator
+        from scora.agent_evaluator import AgentEvaluator
 
         evaluator = AgentEvaluator(
             url="http://localhost:8000/threads/{thread_id}/runs",
@@ -159,14 +159,14 @@ class TestAgentEvaluator:
         assert body["input"]["messages"][0]["content"] == "hello world"
 
     def test_build_request_generates_thread_id(self):
-        from agentic_eval.agent_evaluator import AgentEvaluator
+        from scora.agent_evaluator import AgentEvaluator
 
         evaluator = AgentEvaluator(url="http://test/{thread_id}")
         url, _, _ = evaluator.build_request("test")
         assert "{thread_id}" not in url
 
     def test_response_to_trace(self):
-        from agentic_eval.agent_evaluator import AgentEvaluator
+        from scora.agent_evaluator import AgentEvaluator
         from datetime import datetime, timezone
 
         evaluator = AgentEvaluator()
@@ -183,7 +183,7 @@ class TestAgentEvaluator:
         assert trace.output == "The answer is 42"
 
     def test_response_path_extraction(self):
-        from agentic_eval.agent_evaluator import AgentEvaluator
+        from scora.agent_evaluator import AgentEvaluator
         from datetime import datetime, timezone
 
         evaluator = AgentEvaluator(response_path="data.result.text")
@@ -198,8 +198,8 @@ class TestAgentEvaluator:
         assert trace.output == "deep value"
 
     def test_from_config(self):
-        from agentic_eval.agent_evaluator import from_config, AgentEvaluator
-        from agentic_eval.config import EvalConfig, AgentConfig
+        from scora.agent_evaluator import from_config, AgentEvaluator
+        from scora.config import EvalConfig, AgentConfig
 
         cfg = EvalConfig(
             agent=AgentConfig(
@@ -214,7 +214,7 @@ class TestAgentEvaluator:
         assert evaluator.timeout == 45.0
 
     def test_extract_spans_from_messages(self):
-        from agentic_eval.agent_evaluator import AgentEvaluator
+        from scora.agent_evaluator import AgentEvaluator
         from datetime import datetime, timezone
 
         evaluator = AgentEvaluator()

@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from agentic_eval.adapters import from_mlflow
-from agentic_eval.models import SpanType, Trace
+from scora.adapters import from_mlflow
+from scora.models import SpanType, Trace
 
 
 class TestMLflowSpanList:

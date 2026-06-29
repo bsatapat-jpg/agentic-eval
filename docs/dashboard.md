@@ -9,22 +9,22 @@
 ## Setup
 
 ```bash
-pip install agentic-eval[dashboard]
+pip install scora[dashboard]
 ```
 
 ## Launch
 
 ```bash
-agentic-eval dashboard
-agentic-eval dashboard --port 8502
-agentic-eval dashboard --db ./custom_results.db
+scora dashboard
+scora dashboard --port 8502
+scora dashboard --db ./custom_results.db
 ```
 
 Or programmatically:
 
 ```python
 import subprocess
-subprocess.run(["agentic-eval", "dashboard", "--port", "8501"])
+subprocess.run(["scora", "dashboard", "--port", "8501"])
 ```
 
 <br>

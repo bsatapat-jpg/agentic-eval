@@ -3,16 +3,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agentic-eval"
+name = "scora"
 version = "0.1.0"
-description = "Trajectory-based evaluation framework for AI agent skills"
+description = "SCORA — Skill Compliance, Observability, Rating & Analysis for AI agents"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
     { name = "Biswajit Satapathy", email = "bsatapat@redhat.com" },
 ]
-keywords = ["ai", "agent", "evaluation", "skill", "trajectory", "llm"]
+keywords = ["ai", "agent", "evaluation", "skill", "trajectory", "llm", "scora"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -45,8 +45,8 @@ dashboard = [
     "pandas>=2.0",
 ]
 all = [
-    "agentic-eval[llm]",
-    "agentic-eval[dashboard]",
+    "scora[llm]",
+    "scora[dashboard]",
 ]
 dev = [
     "pytest>=8.0",
@@ -55,15 +55,15 @@ dev = [
 ]
 
 [project.scripts]
-agentic-eval = "agentic_eval.cli:main"
+scora = "scora.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/bsatapat-jpg/agentic-eval"
-Repository = "https://github.com/bsatapat-jpg/agentic-eval"
-Issues = "https://github.com/bsatapat-jpg/agentic-eval/issues"
+Homepage = "https://github.com/bsatapat-jpg/scora"
+Repository = "https://github.com/bsatapat-jpg/scora"
+Issues = "https://github.com/bsatapat-jpg/scora/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agentic_eval", "dashboard"]
+packages = ["src/scora", "dashboard"]
 
 [tool.ruff]
 target-version = "py310"

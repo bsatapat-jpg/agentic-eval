@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from agentic_eval.models import (
+from scora.models import (
     ComparisonResult,
     EvalResult,
     MetricResult,
@@ -37,7 +37,7 @@ class TestSecurityEvaluatorLongStrings:
     raises OSError on strings > 260 chars or with newlines."""
 
     def test_scan_long_inline_markdown(self):
-        from agentic_eval.evaluators.security import SecurityEvaluator
+        from scora.evaluators.security import SecurityEvaluator
 
         long_content = "# My Skill\n\n" + "This is a test. " * 100
         assert len(long_content) > 260
@@ -48,7 +48,7 @@ class TestSecurityEvaluatorLongStrings:
         assert isinstance(report.score, float)
 
     def test_scan_multiline_markdown(self):
-        from agentic_eval.evaluators.security import SecurityEvaluator
+        from scora.evaluators.security import SecurityEvaluator
 
         content = "# Skill\n\nLine 1\nLine 2\nLine 3"
         evaluator = SecurityEvaluator()
@@ -56,7 +56,7 @@ class TestSecurityEvaluatorLongStrings:
         assert report.skill_path == "<inline>"
 
     def test_scan_actual_file_still_works(self, tmp_path):
-        from agentic_eval.evaluators.security import SecurityEvaluator
+        from scora.evaluators.security import SecurityEvaluator
 
         skill_file = tmp_path / "SKILL.md"
         skill_file.write_text("# Test Skill\n\nA test skill.\n")
@@ -75,7 +75,7 @@ class TestStoreSerializationSafety:
     custom objects in metadata."""
 
     def test_save_with_datetime_metadata(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         db = tmp_path / "test.db"
         with ResultStore(db) as store:
@@ -92,7 +92,7 @@ class TestStoreSerializationSafety:
             assert len(rows) == 1
 
     def test_save_security_report_with_complex_data(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         db = tmp_path / "test.db"
         with ResultStore(db) as store:
@@ -149,7 +149,7 @@ class TestActionEconomyLLMNotCounted:
     compared to the optimal (which counts tool/agent steps only)."""
 
     def test_llm_calls_not_counted_as_steps(self):
-        from agentic_eval.metrics.action_economy import ActionEconomyMetric
+        from scora.metrics.action_economy import ActionEconomyMetric
 
         now = datetime.now(timezone.utc)
         spans = [
@@ -188,14 +188,14 @@ class TestRecordLLMCallMetadata:
     """When model is None, it should not appear in metadata."""
 
     def test_no_model_key_when_none(self):
-        from agentic_eval.tracer import record_llm_call, trace_context
+        from scora.tracer import record_llm_call, trace_context
 
         with trace_context() as t:
             span = record_llm_call(input="hi", output="hello")
             assert "model" not in span.metadata
 
     def test_model_key_present_when_set(self):
-        from agentic_eval.tracer import record_llm_call, trace_context
+        from scora.tracer import record_llm_call, trace_context
 
         with trace_context() as t:
             span = record_llm_call(input="hi", output="hello", model="gpt-4")
@@ -211,7 +211,7 @@ class TestRunEvaluationMetricsFilter:
     metrics ran regardless of what was requested."""
 
     def test_metrics_filter_applied(self):
-        from agentic_eval.api import run_evaluation
+        from scora.api import run_evaluation
 
         trace = Trace(input="test", output="result")
         result = run_evaluation(trace, metrics=["task_completion"])
@@ -222,7 +222,7 @@ class TestRunEvaluationMetricsFilter:
         )
 
     def test_metrics_filter_multiple(self):
-        from agentic_eval.api import run_evaluation
+        from scora.api import run_evaluation
 
         trace = Trace(input="test", output="result")
         result = run_evaluation(
@@ -233,7 +233,7 @@ class TestRunEvaluationMetricsFilter:
         assert metric_names == {"task_completion", "output_correctness"}
 
     def test_metrics_none_runs_all(self):
-        from agentic_eval.api import run_evaluation
+        from scora.api import run_evaluation
 
         trace = Trace(input="test", output="result")
         result = run_evaluation(trace, metrics=None)
@@ -250,14 +250,14 @@ class TestStoreCloseGuard:
     be None after close."""
 
     def test_double_close_no_error(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         store = ResultStore(tmp_path / "test.db")
         store.close()
         store.close()
 
     def test_conn_none_after_close(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         store = ResultStore(tmp_path / "test.db")
         store.close()
@@ -272,7 +272,7 @@ class TestStoreInitCleanup:
     """If _init_schema fails, the connection should be closed, not leaked."""
 
     def test_init_failure_cleans_up(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         db = tmp_path / "test.db"
 
@@ -293,7 +293,7 @@ class TestOutputCorrectnessTypeHint:
     """The assertions parameter should accept Callable objects."""
 
     def test_custom_assertion_callable(self):
-        from agentic_eval.metrics.output_correctness import OutputCorrectnessMetric
+        from scora.metrics.output_correctness import OutputCorrectnessMetric
 
         def check_length(output):
             return len(output) > 3
@@ -312,7 +312,7 @@ class TestDecoratorSkillCacheBounded:
     """The skill cache should use LRU eviction, not grow forever."""
 
     def test_lru_cache_used(self):
-        from agentic_eval.decorators import _cached_parse_skill
+        from scora.decorators import _cached_parse_skill
 
         assert hasattr(_cached_parse_skill, "cache_info"), (
             "_cached_parse_skill should be an lru_cache-wrapped function"
@@ -329,14 +329,14 @@ class TestMetricsEmptyTraces:
     """Metrics should handle completely empty traces gracefully."""
 
     def test_task_completion_empty_string_output(self):
-        from agentic_eval.metrics.task_completion import TaskCompletionMetric
+        from scora.metrics.task_completion import TaskCompletionMetric
 
         trace = Trace(output="")
         result = TaskCompletionMetric().score(trace)
         assert result.score == 0.0
 
     def test_step_deviation_no_spans(self):
-        from agentic_eval.metrics.step_deviation import StepDeviationMetric
+        from scora.metrics.step_deviation import StepDeviationMetric
 
         trace = Trace()
         spec = SkillSpec(
@@ -347,28 +347,28 @@ class TestMetricsEmptyTraces:
         assert result.score == 0.0
 
     def test_tool_selection_no_tools_no_spec(self):
-        from agentic_eval.metrics.tool_selection import ToolSelectionMetric
+        from scora.metrics.tool_selection import ToolSelectionMetric
 
         trace = Trace()
         result = ToolSelectionMetric().score(trace)
         assert result.score == 1.0
 
     def test_error_recovery_empty_trace(self):
-        from agentic_eval.metrics.error_recovery import ErrorRecoveryMetric
+        from scora.metrics.error_recovery import ErrorRecoveryMetric
 
         trace = Trace()
         result = ErrorRecoveryMetric().score(trace)
         assert result.score == 1.0
 
     def test_action_economy_zero_optimal(self):
-        from agentic_eval.metrics.action_economy import ActionEconomyMetric
+        from scora.metrics.action_economy import ActionEconomyMetric
 
         trace = Trace()
         result = ActionEconomyMetric(optimal_steps=0).score(trace)
         assert result.score == 1.0
 
     def test_instruction_fidelity_no_spec(self):
-        from agentic_eval.metrics.instruction_fidelity import InstructionFidelityMetric
+        from scora.metrics.instruction_fidelity import InstructionFidelityMetric
 
         trace = Trace(output="result")
         result = InstructionFidelityMetric().score(trace, skill_spec=None)
@@ -376,7 +376,7 @@ class TestMetricsEmptyTraces:
         assert not result.passed
 
     def test_output_correctness_none_output(self):
-        from agentic_eval.metrics.output_correctness import OutputCorrectnessMetric
+        from scora.metrics.output_correctness import OutputCorrectnessMetric
 
         trace = Trace(output=None)
         result = OutputCorrectnessMetric().score(trace, expected_output="expected")
@@ -391,27 +391,27 @@ class TestAdapterMalformedInputs:
     """Adapters should not crash on empty, None, or malformed data."""
 
     def test_langchain_empty_run(self):
-        from agentic_eval.adapters.langchain_adapter import from_langchain
+        from scora.adapters.langchain_adapter import from_langchain
 
         trace = from_langchain({})
         assert isinstance(trace, Trace)
 
     def test_langchain_missing_child_runs(self):
-        from agentic_eval.adapters.langchain_adapter import from_langchain
+        from scora.adapters.langchain_adapter import from_langchain
 
         trace = from_langchain({"inputs": "hello", "outputs": "world"})
         assert trace.input == "hello"
         assert trace.output == "world"
 
     def test_openai_empty_messages(self):
-        from agentic_eval.adapters.openai_adapter import from_openai
+        from scora.adapters.openai_adapter import from_openai
 
         trace = from_openai([])
         assert isinstance(trace, Trace)
         assert trace.input is None
 
     def test_openai_tool_call_with_string_arguments(self):
-        from agentic_eval.adapters.openai_adapter import from_openai
+        from scora.adapters.openai_adapter import from_openai
 
         messages = [
             {"role": "assistant", "content": "I'll help", "tool_calls": [
@@ -424,26 +424,26 @@ class TestAdapterMalformedInputs:
         assert tool_calls[0].arguments == {"q": "test"}
 
     def test_otel_empty_spans(self):
-        from agentic_eval.adapters.otel_adapter import from_otel
+        from scora.adapters.otel_adapter import from_otel
 
         trace = from_otel([])
         assert isinstance(trace, Trace)
         assert len(trace.spans) == 0
 
     def test_gemini_none_contents(self):
-        from agentic_eval.adapters.gemini_adapter import from_gemini
+        from scora.adapters.gemini_adapter import from_gemini
 
         trace = from_gemini(contents=None, response=None)
         assert isinstance(trace, Trace)
 
     def test_gemini_empty_contents(self):
-        from agentic_eval.adapters.gemini_adapter import from_gemini
+        from scora.adapters.gemini_adapter import from_gemini
 
         trace = from_gemini(contents=[])
         assert isinstance(trace, Trace)
 
     def test_gemini_contents_with_missing_parts(self):
-        from agentic_eval.adapters.gemini_adapter import from_gemini
+        from scora.adapters.gemini_adapter import from_gemini
 
         contents = [{"role": "user", "parts": []}, {"role": "model", "parts": []}]
         trace = from_gemini(contents=contents)
@@ -458,7 +458,7 @@ class TestEvaluatorEdgeCases:
     """SkillAdherenceEvaluator should handle edge cases gracefully."""
 
     def test_evaluate_with_no_skill_no_trace(self):
-        from agentic_eval.evaluators.skill_adherence import SkillAdherenceEvaluator
+        from scora.evaluators.skill_adherence import SkillAdherenceEvaluator
 
         evaluator = SkillAdherenceEvaluator()
         trace = Trace()
@@ -467,7 +467,7 @@ class TestEvaluatorEdgeCases:
         assert result.overall_score >= 0.0
 
     def test_evaluate_custom_weights_sum_to_nonone(self):
-        from agentic_eval.evaluators.skill_adherence import SkillAdherenceEvaluator
+        from scora.evaluators.skill_adherence import SkillAdherenceEvaluator
 
         evaluator = SkillAdherenceEvaluator(
             weights={"task_completion": 10.0, "output_correctness": 5.0}
@@ -477,8 +477,8 @@ class TestEvaluatorEdgeCases:
         assert 0.0 <= result.overall_score <= 1.0
 
     def test_metric_exception_handled(self):
-        from agentic_eval.evaluators.skill_adherence import SkillAdherenceEvaluator
-        from agentic_eval.metrics.base import BaseMetric
+        from scora.evaluators.skill_adherence import SkillAdherenceEvaluator
+        from scora.metrics.base import BaseMetric
 
         class BrokenMetric(BaseMetric):
             name = "broken"
@@ -504,14 +504,14 @@ class TestEvaluatorEdgeCases:
 class TestAssertionsEdgeCases:
 
     def test_assert_skill_no_trace_creates_one(self):
-        from agentic_eval.assertions import assert_skill
+        from scora.assertions import assert_skill
 
         spec = SkillSpec(name="test", expected_tools=[])
         result = assert_skill(actual="hello", expected="hello", skill=spec)
         assert isinstance(result, EvalResult)
 
     def test_assert_skill_raises_on_failure(self):
-        from agentic_eval.assertions import SkillAssertionError, assert_skill
+        from scora.assertions import SkillAssertionError, assert_skill
 
         with pytest.raises(SkillAssertionError) as exc_info:
             assert_skill(
@@ -528,7 +528,7 @@ class TestAssertionsEdgeCases:
 class TestStoreExportSafety:
 
     def test_export_empty_db(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         db = tmp_path / "test.db"
         output = tmp_path / "export.json"
@@ -540,7 +540,7 @@ class TestStoreExportSafety:
         assert "stats" in data
 
     def test_query_pagination(self, tmp_path):
-        from agentic_eval.store import ResultStore
+        from scora.store import ResultStore
 
         db = tmp_path / "test.db"
         with ResultStore(db) as store:

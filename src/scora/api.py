@@ -1,9 +1,9 @@
-"""High-level convenience API for agentic-eval.
+"""High-level convenience API for scora.
 
 These functions provide the simplest possible interface for common
 evaluation tasks. Import them directly:
 
-    from agentic_eval import run_evaluation, compare_skills, list_metrics, batch_evaluate
+    from scora import run_evaluation, compare_skills, list_metrics, batch_evaluate
 """
 
 from __future__ import annotations
@@ -31,13 +31,13 @@ def run_evaluation(
     weights: dict[str, float] | None = None,
     use_llm_judge: bool = False,
     save: bool = False,
-    db_path: str = "./agentic_eval_results.db",
+    db_path: str = "./scora_results.db",
 ) -> EvalResult:
     """Evaluate a single trace against a skill specification.
 
     This is the simplest way to evaluate an agent trace:
 
-        from agentic_eval import run_evaluation, Trace
+        from scora import run_evaluation, Trace
 
         trace = Trace(input="query", output="response")
         result = run_evaluation(trace, skill="./SKILL.md")
@@ -93,7 +93,7 @@ def compare_skills(
     trials: int = 1,
     weights: dict[str, float] | None = None,
     save: bool = False,
-    db_path: str = "./agentic_eval_results.db",
+    db_path: str = "./scora_results.db",
 ) -> ComparisonResult:
     """Compare two skill versions side-by-side.
 
@@ -165,7 +165,7 @@ def batch_evaluate(
     weights: dict[str, float] | None = None,
     use_llm_judge: bool = False,
     save: bool = False,
-    db_path: str = "./agentic_eval_results.db",
+    db_path: str = "./scora_results.db",
 ) -> list[EvalResult]:
     """Evaluate multiple traces in batch. Ideal for regression testing.
 
@@ -234,7 +234,7 @@ def list_metrics() -> list[dict[str, Any]]:
 def scan_security(
     skill: str | Path,
     save: bool = False,
-    db_path: str = "./agentic_eval_results.db",
+    db_path: str = "./scora_results.db",
 ):
     """Scan a SKILL.md file for security vulnerabilities.
 

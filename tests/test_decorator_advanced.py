@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from agentic_eval import evaluate, EvalResult, Verdict
-from agentic_eval.tracer import record_tool_call
+from scora import evaluate, EvalResult, Verdict
+from scora.tracer import record_tool_call
 
 
 class TestEvaluateExceptionHandling:
@@ -97,7 +97,7 @@ class TestAutoSave:
             my_agent("test")
             assert Path(db_path).exists()
 
-            from agentic_eval.store import ResultStore
+            from scora.store import ResultStore
             with ResultStore(db_path) as store:
                 results = store.query()
                 assert len(results) == 1

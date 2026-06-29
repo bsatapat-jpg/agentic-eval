@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentic_eval.skill_parser import parse_skill
+from scora.skill_parser import parse_skill
 
 
 SAMPLE_SKILL_FRONTMATTER = """\

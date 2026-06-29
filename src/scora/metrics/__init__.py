@@ -1,4 +1,4 @@
-"""Metrics registry and built-in metrics for agentic-eval."""
+"""Metrics registry and built-in metrics for scora."""
 
 from __future__ import annotations
 

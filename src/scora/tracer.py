@@ -150,7 +150,7 @@ def _attach_span(span: Span, parent_span: Span | None, trace: Trace | None) -> N
         trace.spans.append(span)
     else:
         import logging
-        logging.getLogger("agentic_eval").warning(
+        logging.getLogger("scora").warning(
             "record_%s('%s') called outside trace_context — span discarded. "
             "Wrap your code in `with trace_context() as t:` to capture spans.",
             span.type.value,

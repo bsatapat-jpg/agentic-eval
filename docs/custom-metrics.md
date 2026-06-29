@@ -1,6 +1,6 @@
 # Custom Metrics
 
-> Extend agentic-eval with metrics that matter to **your** use case.
+> Extend scora with metrics that matter to **your** use case.
 
 <br>
 
@@ -11,7 +11,7 @@
 Subclass `BaseMetric`, implement `score()`, and register it:
 
 ```python
-from agentic_eval import BaseMetric, MetricResult, register_metric
+from scora import BaseMetric, MetricResult, register_metric
 
 class LatencyMetric(BaseMetric):
     name = "latency"

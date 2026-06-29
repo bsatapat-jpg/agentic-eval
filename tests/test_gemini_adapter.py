@@ -2,8 +2,8 @@
 
 import pytest
 
-from agentic_eval.adapters import from_gemini
-from agentic_eval.models import SpanType, Trace
+from scora.adapters import from_gemini
+from scora.models import SpanType, Trace
 
 
 class TestGeminiBasicConversation:
