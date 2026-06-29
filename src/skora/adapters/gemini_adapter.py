@@ -1,11 +1,11 @@
-"""Adapter for converting Google Gemini API traces to scora format.
+"""Adapter for converting Google Gemini API traces to skora format.
 
 Handles both the `google-genai` (new unified SDK) and `google-generativeai`
 (older SDK) response formats, as well as raw REST API dicts.
 
 Usage:
-    from scora.adapters import from_gemini
-    from scora import run_evaluation
+    from skora.adapters import from_gemini
+    from skora import run_evaluation
 
     # From Gemini chat history (list of content dicts)
     trace = from_gemini(contents)

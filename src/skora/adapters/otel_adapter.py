@@ -1,7 +1,7 @@
-"""Adapter for converting OpenTelemetry spans to scora format.
+"""Adapter for converting OpenTelemetry spans to skora format.
 
 Usage:
-    from scora.adapters import from_otel
+    from skora.adapters import from_otel
 
     # From OTel span dicts (e.g., exported JSON)
     trace = from_otel(otel_spans)

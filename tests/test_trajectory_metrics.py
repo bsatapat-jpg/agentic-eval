@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from scora.models import (
+from skora.models import (
     MetricResult,
     SkillSpec,
     SkillStep,
@@ -59,7 +59,7 @@ def _llm_span(model="gpt-4", output=None):
 class TestToolResponseAlignment:
 
     def _metric(self):
-        from scora.metrics.tool_response_alignment import ToolResponseAlignmentMetric
+        from skora.metrics.tool_response_alignment import ToolResponseAlignmentMetric
         return ToolResponseAlignmentMetric()
 
     def test_perfectly_aligned_tool_call(self):
@@ -159,7 +159,7 @@ class TestToolResponseAlignment:
 class TestGroundedness:
 
     def _metric(self):
-        from scora.metrics.grounding import GroundednessMetric
+        from skora.metrics.grounding import GroundednessMetric
         return GroundednessMetric()
 
     def test_fully_grounded_output(self):
@@ -235,7 +235,7 @@ class TestGroundedness:
 class TestTrajectoryOptimality:
 
     def _metric(self):
-        from scora.metrics.trajectory_optimality import TrajectoryOptimalityMetric
+        from skora.metrics.trajectory_optimality import TrajectoryOptimalityMetric
         return TrajectoryOptimalityMetric()
 
     def test_optimal_trajectory(self):
@@ -329,7 +329,7 @@ class TestTrajectoryOptimality:
 class TestHallucination:
 
     def _metric(self):
-        from scora.metrics.hallucination import HallucinationMetric
+        from skora.metrics.hallucination import HallucinationMetric
         return HallucinationMetric()
 
     def test_no_hallucination(self):
@@ -431,7 +431,7 @@ class TestFullEvaluatorWithTrajectoryMetrics:
     the new trajectory-aware ones."""
 
     def test_evaluator_runs_all_11_metrics(self):
-        from scora.evaluators.skill_adherence import SkillAdherenceEvaluator
+        from skora.evaluators.skill_adherence import SkillAdherenceEvaluator
 
         spec = SkillSpec(
             name="test-skill",
@@ -464,7 +464,7 @@ class TestFullEvaluatorWithTrajectoryMetrics:
         assert len(result.metric_results) == 11
 
     def test_registry_has_11_metrics(self):
-        from scora.metrics import get_registry
+        from skora.metrics import get_registry
 
         registry = get_registry()
         names = registry.names()
@@ -475,7 +475,7 @@ class TestFullEvaluatorWithTrajectoryMetrics:
         assert "hallucination" in names
 
     def test_api_list_metrics_returns_11(self):
-        from scora.api import list_metrics
+        from skora.api import list_metrics
 
         metrics = list_metrics()
         assert len(metrics) == 11
@@ -484,7 +484,7 @@ class TestFullEvaluatorWithTrajectoryMetrics:
         assert "groundedness" in names
 
     def test_run_evaluation_with_new_metrics(self):
-        from scora.api import run_evaluation
+        from skora.api import run_evaluation
 
         trace = Trace(
             input="What is the status of project X?",
@@ -500,7 +500,7 @@ class TestFullEvaluatorWithTrajectoryMetrics:
         assert len(result.metric_results) == 11
 
     def test_filter_to_only_trajectory_metrics(self):
-        from scora.api import run_evaluation
+        from skora.api import run_evaluation
 
         trace = Trace(
             input="test",

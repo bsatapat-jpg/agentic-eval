@@ -11,7 +11,7 @@ Supports:
 
 Usage::
 
-    from scora.agent_evaluator import AgentEvaluator
+    from skora.agent_evaluator import AgentEvaluator
 
     evaluator = AgentEvaluator(
         url="http://localhost:2026/threads/{thread_id}/runs",
@@ -152,7 +152,7 @@ class AgentEvaluator:
         query: str,
         response: dict[str, Any],
     ) -> Trace:
-        """Convert an agent response into an scora Trace.
+        """Convert an agent response into an skora Trace.
 
         Handles:
         - JSON dict responses (extracts tool calls, messages)
@@ -188,7 +188,7 @@ class AgentEvaluator:
         weights: dict[str, float] | None = None,
         use_llm_judge: bool = False,
         save: bool = False,
-        db_path: str = "./scora_results.db",
+        db_path: str = "./skora_results.db",
     ) -> list[EvalResult]:
         """Run test cases against the live agent and evaluate responses.
 

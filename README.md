@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">SCORA</h1>
+  <h1 align="center">SKORA</h1>
   <p align="center">
     <strong>Skill Compliance, Observability, Rating & Analysis</strong>
   </p>
@@ -18,7 +18,7 @@
 
 > Existing evaluation tools focus on LLM output quality. But agents are **multi-step systems** — they call tools, make decisions, recover from errors, and follow skill specifications. You need to evaluate the *entire trajectory*, not just the final answer.
 
-**SCORA** captures the full execution trace of your agent — every tool call, every LLM decision, every retrieval step — and scores it against your skill specs using **11 structured metrics** across 3 tiers.
+**SKORA** captures the full execution trace of your agent — every tool call, every LLM decision, every retrieval step — and scores it against your skill specs using **11 structured metrics** across 3 tiers.
 
 <br>
 
@@ -42,7 +42,7 @@
 
 ## How it compares
 
-| Feature | SCORA | DeepEval | AgentOps | LangSmith |
+| Feature | SKORA | DeepEval | AgentOps | LangSmith |
 |:---|:---:|:---:|:---:|:---:|
 | Trajectory-based scoring (11 metrics) | **Yes** | No | Partial | Partial |
 | MCP / RAG response validation | **Yes** | No | No | No |
@@ -62,16 +62,16 @@
 ## Installation
 
 ```bash
-pip install scora
+pip install skora
 ```
 
 <details>
 <summary><strong>Optional extras</strong></summary>
 
 ```bash
-pip install scora[llm]        # LLM-as-judge scoring (OpenAI / Anthropic)
-pip install scora[dashboard]  # Streamlit visualization dashboard
-pip install scora[all]        # Everything
+pip install skora[llm]        # LLM-as-judge scoring (OpenAI / Anthropic)
+pip install skora[dashboard]  # Streamlit visualization dashboard
+pip install skora[all]        # Everything
 ```
 </details>
 
@@ -82,7 +82,7 @@ pip install scora[all]        # Everything
 ### 1-line decorator
 
 ```python
-from scora import evaluate, record_tool_call
+from skora import evaluate, record_tool_call
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def my_agent(query: str) -> str:
@@ -96,7 +96,7 @@ my_agent.last_eval.print()       # rich console output with per-metric breakdown
 ### Functional API
 
 ```python
-from scora import run_evaluation, trace_context, record_tool_call
+from skora import run_evaluation, trace_context, record_tool_call
 
 with trace_context(input="fix the CSS") as trace:
     record_tool_call("read_file", arguments={"path": "style.css"}, result="...")
@@ -110,7 +110,7 @@ result.print()
 ### Config-driven CI (zero Python)
 
 ```yaml
-# scora.yaml
+# skora.yaml
 project: my-agent
 skills:
   - path: ./skills/search/SKILL.md
@@ -127,7 +127,7 @@ ci:
 ```
 
 ```bash
-scora ci   # reads config, calls agent, evaluates, exits non-zero on failure
+skora ci   # reads config, calls agent, evaluates, exits non-zero on failure
 ```
 
 <br>
@@ -175,7 +175,7 @@ Import traces from any agent framework — no code changes required.
         │               │             │               │
         ▼               ▼             ▼               ▼
  ┌─────────────────────────────────────────────────────────┐
- │                    scora                         │
+ │                    skora                         │
  │              from_langgraph()  from_langfuse()          │
  │              from_mlflow()    from_gemini()             │
  │              from_langchain() from_openai() from_otel() │
@@ -196,8 +196,8 @@ Import traces from any agent framework — no code changes required.
 <summary><strong>Example: Evaluate a LangGraph agent</strong></summary>
 
 ```python
-from scora.adapters import from_langgraph
-from scora import run_evaluation
+from skora.adapters import from_langgraph
+from skora import run_evaluation
 
 final_state = await graph.ainvoke({"messages": [HumanMessage("query")]})
 trace = from_langgraph(final_state)
@@ -210,8 +210,8 @@ result.print()
 <summary><strong>Example: Evaluate from Langfuse traces</strong></summary>
 
 ```python
-from scora.adapters import from_langfuse
-from scora import run_evaluation
+from skora.adapters import from_langfuse
+from skora import run_evaluation
 
 observations = langfuse.api.observations.get_many(trace_id="...", fields="core,io,usage")
 trace = from_langfuse(observations.data)
@@ -237,7 +237,7 @@ async def my_async_agent(query: str) -> str:
 <summary><strong>pytest assertions</strong></summary>
 
 ```python
-from scora import assert_skill
+from skora import assert_skill
 
 def test_search_skill():
     result = my_agent("find the bug")
@@ -250,14 +250,14 @@ def test_search_skill():
 <summary><strong>Security scanning</strong></summary>
 
 ```python
-from scora import scan_security
+from skora import scan_security
 
 report = scan_security("./SKILL.md")
 print(f"Grade: {report.grade}  Critical: {report.critical_count}")
 ```
 
 ```bash
-scora security ./SKILL.md --fail-on critical
+skora security ./SKILL.md --fail-on critical
 ```
 </details>
 
@@ -265,7 +265,7 @@ scora security ./SKILL.md --fail-on critical
 <summary><strong>A/B skill comparison</strong></summary>
 
 ```python
-from scora import compare_skills
+from skora import compare_skills
 
 result = compare_skills("./v1/SKILL.md", "./v2/SKILL.md", traces_a=v1, traces_b=v2)
 print(result.verdict)   # a_better / b_better / no_difference
@@ -277,7 +277,7 @@ print(f"Lift: {result.lift:+.2%}")
 <summary><strong>Live agent HTTP evaluation</strong></summary>
 
 ```python
-from scora import AgentEvaluator
+from skora import AgentEvaluator
 
 evaluator = AgentEvaluator(
     url="http://localhost:8000/api/chat",
@@ -294,7 +294,7 @@ results = evaluator.evaluate(
 <summary><strong>Custom metrics</strong></summary>
 
 ```python
-from scora import BaseMetric, MetricResult, register_metric
+from skora import BaseMetric, MetricResult, register_metric
 
 class LatencyMetric(BaseMetric):
     name = "latency"
@@ -314,8 +314,8 @@ register_metric(LatencyMetric())
 <summary><strong>Streamlit dashboard</strong></summary>
 
 ```bash
-pip install scora[dashboard]
-scora dashboard
+pip install skora[dashboard]
+skora dashboard
 ```
 
 Overview, trajectory viewer, comparison, and security pages.
@@ -325,12 +325,12 @@ Overview, trajectory viewer, comparison, and security pages.
 <summary><strong>CLI reference</strong></summary>
 
 ```bash
-scora security ./SKILL.md           # scan for vulnerabilities
-scora results -s "my-skill" -v fail  # view stored results
-scora compare ./v1.md ./v2.md        # compare skill versions
-scora metrics                        # list all metrics
-scora dashboard                      # launch web dashboard
-scora ci                             # run evaluation from YAML config
+skora security ./SKILL.md           # scan for vulnerabilities
+skora results -s "my-skill" -v fail  # view stored results
+skora compare ./v1.md ./v2.md        # compare skill versions
+skora metrics                        # list all metrics
+skora dashboard                      # launch web dashboard
+skora ci                             # run evaluation from YAML config
 ```
 </details>
 

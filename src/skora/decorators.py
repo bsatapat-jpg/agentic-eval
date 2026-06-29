@@ -18,7 +18,7 @@ from .models import EvalResult, SkillSpec, Trace, Verdict
 from .skill_parser import parse_skill
 from .tracer import get_current_trace, trace_context, async_trace_context
 
-logger = logging.getLogger("scora")
+logger = logging.getLogger("skora")
 
 _SKILL_CACHE_MAX = 128
 
@@ -104,7 +104,7 @@ def evaluate(
     metadata: dict[str, Any] | None = None,
     use_llm_judge: bool = False,
     auto_save: bool = False,
-    db_path: str = "./scora_results.db",
+    db_path: str = "./skora_results.db",
     on_complete: Callable[[EvalResult], None] | None = None,
 ) -> Callable:
     """Decorator that traces execution AND runs evaluation metrics.

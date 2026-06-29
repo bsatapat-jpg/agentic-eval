@@ -93,7 +93,7 @@ class LLMJudge:
 
         except ImportError:
             raise ImportError(
-                "OpenAI package not installed. Install with: pip install scora[llm]"
+                "OpenAI package not installed. Install with: pip install skora[llm]"
             )
 
     def _evaluate_anthropic(self, prompt: str) -> JudgeResult:
@@ -114,7 +114,7 @@ class LLMJudge:
 
         except ImportError:
             raise ImportError(
-                "Anthropic package not installed. Install with: pip install scora[llm]"
+                "Anthropic package not installed. Install with: pip install skora[llm]"
             )
 
     def _parse_response(self, raw: str) -> JudgeResult:

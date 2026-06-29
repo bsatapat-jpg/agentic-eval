@@ -9,13 +9,13 @@ def render(db_path: str) -> None:
     import streamlit as st
     import pandas as pd
 
-    from scora.store import ResultStore
+    from skora.store import ResultStore
 
     st.header("Evaluation Overview")
 
     if not Path(db_path).exists():
         st.warning("No results database found. Run some evaluations first.")
-        st.code("pip install scora\n\n# Then in your code:\nfrom scora import evaluate\n\n@evaluate(skill='./SKILL.md')\ndef my_agent(query):\n    ...", language="python")
+        st.code("pip install skora\n\n# Then in your code:\nfrom skora import evaluate\n\n@evaluate(skill='./SKILL.md')\ndef my_agent(query):\n    ...", language="python")
         return
 
     store = ResultStore(db_path)

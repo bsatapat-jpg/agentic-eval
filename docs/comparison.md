@@ -11,7 +11,7 @@ Compare two versions of a skill across all 11 evaluation metrics with statistica
 ## With Pre-Recorded Traces
 
 ```python
-from scora import compare_skills
+from skora import compare_skills
 
 result = compare_skills(
     skill_a="./skills/v1/SKILL.md",
@@ -47,8 +47,8 @@ result = compare_skills(
 ## From the CLI
 
 ```bash
-scora compare ./v1/SKILL.md ./v2/SKILL.md
-scora compare ./v1/SKILL.md ./v2/SKILL.md --format json
+skora compare ./v1/SKILL.md ./v2/SKILL.md
+skora compare ./v1/SKILL.md ./v2/SKILL.md --format json
 ```
 
 <br>

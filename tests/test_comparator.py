@@ -3,11 +3,11 @@
 import pytest
 from datetime import datetime, timezone
 
-from scora.models import (
+from skora.models import (
     ComparisonVerdict, SkillSpec, SkillStep,
     Span, SpanType, Trace, ToolCall,
 )
-from scora.evaluators.comparator import SkillComparator
+from skora.evaluators.comparator import SkillComparator
 
 
 def _make_trace(output=None, tool_calls=None):

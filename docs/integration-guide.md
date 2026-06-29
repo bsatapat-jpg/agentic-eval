@@ -1,6 +1,6 @@
 # Integration Guide
 
-> Get scora into your project in minutes — regardless of your architecture.
+> Get skora into your project in minutes — regardless of your architecture.
 
 <br>
 
@@ -21,7 +21,7 @@
 
 > Recommended for CI/CD. Zero Python required.
 
-Create an `scora.yaml` at your project root:
+Create an `skora.yaml` at your project root:
 
 ```yaml
 project: my-agent
@@ -72,10 +72,10 @@ ci:
 Then run:
 
 ```bash
-scora ci                         # auto-finds scora.yaml
-scora ci --config ./custom.yaml  # explicit path
-scora ci --fail-below 0.8        # override threshold
-scora ci --format json           # machine-readable output
+skora ci                         # auto-finds skora.yaml
+skora ci --config ./custom.yaml  # explicit path
+skora ci --fail-below 0.8        # override threshold
+skora ci --format json           # machine-readable output
 ```
 
 <details>
@@ -135,8 +135,8 @@ agent:
 
 ```python
 from langfuse import get_client
-from scora.adapters import from_langfuse
-from scora import run_evaluation
+from skora.adapters import from_langfuse
+from skora import run_evaluation
 
 langfuse = get_client()
 observations = langfuse.api.observations.get_many(
@@ -154,8 +154,8 @@ result.print()
 
 ```python
 import mlflow
-from scora.adapters import from_mlflow
-from scora import run_evaluation
+from skora.adapters import from_mlflow
+from skora import run_evaluation
 
 mlflow_trace = mlflow.get_trace("<trace_id>")
 trace = from_mlflow(mlflow_trace)
@@ -169,8 +169,8 @@ result.print()
 <summary><strong>From LangGraph state</strong></summary>
 
 ```python
-from scora.adapters import from_langgraph
-from scora import run_evaluation
+from skora.adapters import from_langgraph
+from skora import run_evaluation
 
 final_state = await graph.ainvoke({"messages": [HumanMessage("query")]})
 trace = from_langgraph(final_state)
@@ -184,7 +184,7 @@ result.print()
 <summary><strong>From LangGraph streaming events</strong></summary>
 
 ```python
-from scora.adapters import from_langgraph
+from skora.adapters import from_langgraph
 
 events = [e async for e in graph.astream_events(input_data, version="v2")]
 trace = from_langgraph(events)
@@ -197,7 +197,7 @@ result = run_evaluation(trace, skill="./SKILL.md")
 <summary><strong>From OpenTelemetry / Gemini / OpenAI</strong></summary>
 
 ```python
-from scora.adapters import from_otel, from_gemini, from_openai
+from skora.adapters import from_otel, from_gemini, from_openai
 
 trace = from_otel(exported_spans)
 trace = from_gemini(chat.history, model="gemini-2.0-flash")
@@ -218,7 +218,7 @@ trace = from_openai(messages=conversation)
 <summary><strong>Simple agent</strong></summary>
 
 ```python
-from scora import evaluate, record_tool_call
+from skora import evaluate, record_tool_call
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def my_agent(query: str) -> str:
@@ -235,7 +235,7 @@ my_agent.last_eval.print()
 <summary><strong>LangChain agent</strong></summary>
 
 ```python
-from scora import evaluate, record_tool_call, record_llm_call
+from skora import evaluate, record_tool_call, record_llm_call
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def langchain_agent(query: str) -> str:
@@ -251,7 +251,7 @@ def langchain_agent(query: str) -> str:
 <summary><strong>Async agent (FastAPI, LangGraph, etc.)</strong></summary>
 
 ```python
-from scora import evaluate
+from skora import evaluate
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 async def async_agent(query: str) -> str:
@@ -290,7 +290,7 @@ def my_agent(query: str) -> str:
 > No code changes. Just point to the API.
 
 ```python
-from scora import AgentEvaluator
+from skora import AgentEvaluator
 
 evaluator = AgentEvaluator(
     url="http://localhost:8000/api/chat",
@@ -333,10 +333,10 @@ evaluator = AgentEvaluator(
 <summary><strong>From YAML config</strong></summary>
 
 ```python
-from scora import load_config
-from scora.agent_evaluator import from_config
+from skora import load_config
+from skora.agent_evaluator import from_config
 
-config = load_config("./scora.yaml")
+config = load_config("./skora.yaml")
 evaluator = from_config(config)
 results = evaluator.evaluate(
     test_cases=config.test_cases,
@@ -356,7 +356,7 @@ results = evaluator.evaluate(
 <summary><strong>Aegra / LangGraph Platform</strong></summary>
 
 ```yaml
-# scora.yaml
+# skora.yaml
 project: sales-assistant-v2
 agent:
   url: http://localhost:2026/sales-assistant/threads/{thread_id}/runs
@@ -382,7 +382,7 @@ test_cases:
 
 ```python
 from crewai import Crew
-from scora import evaluate
+from skora import evaluate
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def run_crew(query: str) -> str:
@@ -397,7 +397,7 @@ def run_crew(query: str) -> str:
 
 ```python
 from autogen import AssistantAgent, UserProxyAgent
-from scora import trace_context, run_evaluation
+from skora import trace_context, run_evaluation
 
 with trace_context(input=query) as trace:
     assistant = AssistantAgent("assistant", llm_config={...})
@@ -414,7 +414,7 @@ result = run_evaluation(trace, skill="./SKILL.md")
 <summary><strong>Custom agent loop</strong></summary>
 
 ```python
-from scora import trace_context, record_tool_call, record_llm_call, run_evaluation
+from skora import trace_context, record_tool_call, record_llm_call, run_evaluation
 
 with trace_context(input=query) as trace:
     messages = [{"role": "user", "content": query}]
@@ -456,12 +456,12 @@ jobs:
         run: docker compose up -d
       - name: Wait for agent
         run: sleep 10
-      - name: Install scora
-        run: pip install scora
+      - name: Install skora
+        run: pip install skora
       - name: Run evaluation
         env:
           AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
-        run: scora ci --format json
+        run: skora ci --format json
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -479,8 +479,8 @@ jobs:
 evaluate:
   stage: test
   script:
-    - pip install scora
-    - scora ci --config ./scora.yaml --format json
+    - pip install skora
+    - skora ci --config ./skora.yaml --format json
   artifacts:
     paths: [eval_report.json]
     when: always
@@ -494,7 +494,7 @@ evaluate:
 <summary><strong>pytest</strong></summary>
 
 ```python
-from scora import assert_skill
+from skora import assert_skill
 
 def test_search_skill():
     result = my_agent("find the bug in auth.py")
@@ -525,7 +525,7 @@ def test_no_hallucination():
 curl -X POST $EVAL_PIPELINE_URL -d '{"agent_url": "...", "dataset": "..."}'
 
 # After
-scora ci
+skora ci
 ```
 
 </details>
@@ -533,14 +533,14 @@ scora ci
 <details>
 <summary><strong>From DeepEval</strong></summary>
 
-scora is complementary — it evaluates the *trajectory*, not just output:
+skora is complementary — it evaluates the *trajectory*, not just output:
 
 ```python
 # DeepEval: output-only
 from deepeval.metrics import GEval
 
-# scora: trajectory (tool calls, steps, grounding)
-from scora import run_evaluation
+# skora: trajectory (tool calls, steps, grounding)
+from skora import run_evaluation
 result = run_evaluation(trace, skill="./SKILL.md")
 ```
 
@@ -551,8 +551,8 @@ result = run_evaluation(trace, skill="./SKILL.md")
 
 ```python
 from langsmith import Client
-from scora.adapters import from_langchain
-from scora import run_evaluation
+from skora.adapters import from_langchain
+from skora import run_evaluation
 
 client = Client()
 for run in client.list_runs(project_name="my-project"):

@@ -1,8 +1,8 @@
-"""Adapter for converting LangChain/LangGraph traces to scora format.
+"""Adapter for converting LangChain/LangGraph traces to skora format.
 
 Usage:
     from langchain.callbacks import tracing_v2_enabled
-    from scora.adapters import from_langchain
+    from skora.adapters import from_langchain
 
     # Option 1: From LangSmith run
     trace = from_langchain(run_dict)

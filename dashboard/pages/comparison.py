@@ -9,7 +9,7 @@ def render(db_path: str) -> None:
     import streamlit as st
     import pandas as pd
 
-    from scora.store import ResultStore
+    from skora.store import ResultStore
 
     st.header("Skill Version Comparison")
 
@@ -26,7 +26,7 @@ def render(db_path: str) -> None:
             st.info(
                 "No comparison results yet. Compare skills using:\n\n"
                 "```python\n"
-                "from scora import compare_skills\n"
+                "from skora import compare_skills\n"
                 "result = compare_skills(skill_a, skill_b, traces_a=..., traces_b=...)\n"
                 "```"
             )

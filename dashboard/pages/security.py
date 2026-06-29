@@ -9,7 +9,7 @@ def render(db_path: str) -> None:
     import streamlit as st
     import pandas as pd
 
-    from scora.store import ResultStore
+    from skora.store import ResultStore
 
     st.header("Security Scan Results")
 
@@ -25,10 +25,10 @@ def render(db_path: str) -> None:
         if not reports:
             st.info(
                 "No security scans yet. Scan a skill with:\n\n"
-                "```bash\nscora security ./SKILL.md\n```\n\n"
+                "```bash\nskora security ./SKILL.md\n```\n\n"
                 "Or in Python:\n"
                 "```python\n"
-                "from scora import scan_security\n"
+                "from skora import scan_security\n"
                 "report = scan_security('./SKILL.md')\n"
                 "```"
             )

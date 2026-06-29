@@ -1,4 +1,4 @@
-"""Metrics registry and built-in metrics for scora."""
+"""Metrics registry and built-in metrics for skora."""
 
 from __future__ import annotations
 

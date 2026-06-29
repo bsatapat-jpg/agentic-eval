@@ -1,6 +1,6 @@
 # Architecture
 
-> How scora is built and why.
+> How skora is built and why.
 
 <br>
 
@@ -52,9 +52,9 @@
 ## Package Structure
 
 ```
-scora/
+skora/
 │
-├── src/scora/
+├── src/skora/
 │   ├── __init__.py                  # Public API exports
 │   ├── models.py                    # Pydantic data models
 │   ├── tracer.py                    # Context managers for trace capture

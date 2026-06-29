@@ -1,4 +1,4 @@
-"""Core data models for scora."""
+"""Core data models for skora."""
 
 from __future__ import annotations
 

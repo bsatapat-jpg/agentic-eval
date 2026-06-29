@@ -5,12 +5,12 @@ import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
 
-from scora.models import (
+from skora.models import (
     Span, SpanType, Trace, ToolCall, SkillSpec, SkillStep,
 )
-from scora.evaluators.skill_adherence import SkillAdherenceEvaluator
-from scora.evaluators.security import SecurityEvaluator
-from scora.store import ResultStore
+from skora.evaluators.skill_adherence import SkillAdherenceEvaluator
+from skora.evaluators.security import SecurityEvaluator
+from skora.store import ResultStore
 
 
 def _make_trace(output=None, tool_calls=None, errors=None):

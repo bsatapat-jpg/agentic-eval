@@ -3,16 +3,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "scora"
+name = "skora"
 version = "0.1.0"
-description = "SCORA — Skill Compliance, Observability, Rating & Analysis for AI agents"
+description = "SKORA — Skill Knowledge, Observability, Rating & Analysis for AI agents"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 authors = [
     { name = "Biswajit Satapathy", email = "bsatapat@redhat.com" },
 ]
-keywords = ["ai", "agent", "evaluation", "skill", "trajectory", "llm", "scora"]
+keywords = ["ai", "agent", "evaluation", "skill", "trajectory", "llm", "skora"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -45,8 +45,8 @@ dashboard = [
     "pandas>=2.0",
 ]
 all = [
-    "scora[llm]",
-    "scora[dashboard]",
+    "skora[llm]",
+    "skora[dashboard]",
 ]
 dev = [
     "pytest>=8.0",
@@ -55,15 +55,15 @@ dev = [
 ]
 
 [project.scripts]
-scora = "scora.cli:main"
+skora = "skora.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/bsatapat-jpg/scora"
-Repository = "https://github.com/bsatapat-jpg/scora"
-Issues = "https://github.com/bsatapat-jpg/scora/issues"
+Homepage = "https://github.com/bsatapat-jpg/skora"
+Repository = "https://github.com/bsatapat-jpg/skora"
+Issues = "https://github.com/bsatapat-jpg/skora/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/scora", "dashboard"]
+packages = ["src/skora", "dashboard"]
 
 [tool.ruff]
 target-version = "py310"

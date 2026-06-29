@@ -10,7 +10,7 @@ def render(db_path: str) -> None:
     import streamlit as st
     import pandas as pd
 
-    from scora.store import ResultStore
+    from skora.store import ResultStore
 
     st.header("Trajectory Viewer")
 

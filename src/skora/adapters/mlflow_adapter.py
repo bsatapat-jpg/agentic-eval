@@ -1,4 +1,4 @@
-"""Adapter for converting MLflow traces/spans to scora format.
+"""Adapter for converting MLflow traces/spans to skora format.
 
 MLflow traces consist of ``TraceInfo`` (metadata) and ``TraceData`` (a list of
 ``Span`` objects).  Spans use the OpenTelemetry-compatible schema with fields
@@ -14,8 +14,8 @@ This adapter accepts:
 
 Usage::
 
-    from scora.adapters import from_mlflow
-    from scora import run_evaluation
+    from skora.adapters import from_mlflow
+    from skora import run_evaluation
 
     import mlflow
     trace = mlflow.get_trace("<trace_id>")
@@ -37,7 +37,7 @@ def from_mlflow(
     *,
     trace_id: str | None = None,
 ) -> Trace:
-    """Convert MLflow trace data into an scora Trace.
+    """Convert MLflow trace data into an skora Trace.
 
     Args:
         data: One of:

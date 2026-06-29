@@ -226,7 +226,7 @@ Supported by: `task_completion`, `instruction_fidelity`, `groundedness`, `halluc
 <summary><strong>Metric discovery</strong></summary>
 
 ```python
-from scora import list_metrics
+from skora import list_metrics
 
 for m in list_metrics():
     print(f"[Tier {m['tier']}] {m['name']}: {m['description']}")
