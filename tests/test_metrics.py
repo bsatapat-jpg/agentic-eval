@@ -3,17 +3,17 @@
 import pytest
 from datetime import datetime, timezone
 
-from agentic_eval.models import (
+from scora.models import (
     MetricResult, SkillSpec, SkillStep, Span, SpanType,
     Trace, ToolCall,
 )
-from agentic_eval.metrics.task_completion import TaskCompletionMetric
-from agentic_eval.metrics.instruction_fidelity import InstructionFidelityMetric
-from agentic_eval.metrics.output_correctness import OutputCorrectnessMetric
-from agentic_eval.metrics.step_deviation import StepDeviationMetric
-from agentic_eval.metrics.tool_selection import ToolSelectionMetric
-from agentic_eval.metrics.error_recovery import ErrorRecoveryMetric
-from agentic_eval.metrics.action_economy import ActionEconomyMetric
+from scora.metrics.task_completion import TaskCompletionMetric
+from scora.metrics.instruction_fidelity import InstructionFidelityMetric
+from scora.metrics.output_correctness import OutputCorrectnessMetric
+from scora.metrics.step_deviation import StepDeviationMetric
+from scora.metrics.tool_selection import ToolSelectionMetric
+from scora.metrics.error_recovery import ErrorRecoveryMetric
+from scora.metrics.action_economy import ActionEconomyMetric
 
 
 def _make_trace(output=None, tool_calls=None, errors=None):

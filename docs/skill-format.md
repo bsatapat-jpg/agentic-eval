@@ -1,8 +1,8 @@
 # SKILL.md Format
 
-> Define what your agent is *supposed to do* — agentic-eval evaluates how well it actually does it.
+> Define what your agent is *supposed to do* — scora evaluates how well it actually does it.
 
-agentic-eval parses Cursor-style `SKILL.md` files to extract structured information from both YAML frontmatter and markdown body.
+scora parses Cursor-style `SKILL.md` files to extract structured information from both YAML frontmatter and markdown body.
 
 <br>
 
@@ -139,7 +139,7 @@ Tool names inside backticks within step descriptions are **automatically extract
 ## Using Parsed Skills in Code
 
 ```python
-from agentic_eval import parse_skill
+from scora import parse_skill
 
 spec = parse_skill("./SKILL.md")
 

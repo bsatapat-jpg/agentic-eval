@@ -1,4 +1,4 @@
-"""Adapter for converting Langfuse traces/observations to agentic-eval format.
+"""Adapter for converting Langfuse traces/observations to scora format.
 
 Langfuse organises data as *observations* (spans, generations, events) grouped
 by a shared ``traceId``.  This adapter accepts both:
@@ -11,8 +11,8 @@ by a shared ``traceId``.  This adapter accepts both:
 
 Usage::
 
-    from agentic_eval.adapters import from_langfuse
-    from agentic_eval import run_evaluation
+    from scora.adapters import from_langfuse
+    from scora import run_evaluation
 
     # From a list of observation dicts / SDK objects
     trace = from_langfuse(observations)
@@ -36,7 +36,7 @@ def from_langfuse(
     *,
     trace_id: str | None = None,
 ) -> Trace:
-    """Convert Langfuse data into an agentic-eval Trace.
+    """Convert Langfuse data into an scora Trace.
 
     Args:
         data: Either a list of observation dicts/objects (v2 API style), or a

@@ -4,8 +4,8 @@ import asyncio
 
 import pytest
 
-from agentic_eval import evaluate, trace_skill, Trace
-from agentic_eval.tracer import (
+from scora import evaluate, trace_skill, Trace
+from scora.tracer import (
     async_trace_context,
     async_span_context,
     record_tool_call,

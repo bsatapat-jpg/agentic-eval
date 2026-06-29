@@ -1,4 +1,4 @@
-"""Specialized evaluators for agentic-eval."""
+"""Specialized evaluators for scora."""
 
 from .skill_adherence import SkillAdherenceEvaluator
 from .security import SecurityEvaluator

@@ -5,12 +5,12 @@ import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
 
-from agentic_eval.models import (
+from scora.models import (
     Span, SpanType, Trace, ToolCall, SkillSpec, SkillStep,
 )
-from agentic_eval.evaluators.skill_adherence import SkillAdherenceEvaluator
-from agentic_eval.evaluators.security import SecurityEvaluator
-from agentic_eval.store import ResultStore
+from scora.evaluators.skill_adherence import SkillAdherenceEvaluator
+from scora.evaluators.security import SecurityEvaluator
+from scora.store import ResultStore
 
 
 def _make_trace(output=None, tool_calls=None, errors=None):

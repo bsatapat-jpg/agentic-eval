@@ -5,7 +5,7 @@
 <br>
 
 ```
-agentic-eval <command> [options]
+scora <command> [options]
 ```
 
 | Command | Description |
@@ -26,16 +26,16 @@ agentic-eval <command> [options]
 Scan a SKILL.md file for security vulnerabilities.
 
 ```bash
-agentic-eval security ./SKILL.md
-agentic-eval security ./SKILL.md --output report.json
-agentic-eval security ./SKILL.md --fail-on critical
+scora security ./SKILL.md
+scora security ./SKILL.md --output report.json
+scora security ./SKILL.md --fail-on critical
 ```
 
 | Option | Description |
 |:---|:---|
 | `SKILL_PATH` | Path to SKILL.md file *(required)* |
 | `--output, -o` | Export report to JSON file |
-| `--db` | Database path (default: `./agentic_eval_results.db`) |
+| `--db` | Database path (default: `./scora_results.db`) |
 | `--fail-on` | Exit non-zero on findings: `critical`, `warning`, or `any` |
 
 <br>
@@ -47,10 +47,10 @@ agentic-eval security ./SKILL.md --fail-on critical
 View stored evaluation results.
 
 ```bash
-agentic-eval results
-agentic-eval results -s "my-skill" -v fail
-agentic-eval results --limit 50 --format json
-agentic-eval results --export report.json
+scora results
+scora results -s "my-skill" -v fail
+scora results --limit 50 --format json
+scora results --export report.json
 ```
 
 | Option | Description |
@@ -71,8 +71,8 @@ agentic-eval results --export report.json
 Compare two SKILL.md files (security + stored evaluation metrics).
 
 ```bash
-agentic-eval compare ./v1/SKILL.md ./v2/SKILL.md
-agentic-eval compare ./v1/SKILL.md ./v2/SKILL.md --format json
+scora compare ./v1/SKILL.md ./v2/SKILL.md
+scora compare ./v1/SKILL.md ./v2/SKILL.md --format json
 ```
 
 | Option | Description |
@@ -91,7 +91,7 @@ agentic-eval compare ./v1/SKILL.md ./v2/SKILL.md --format json
 List all registered evaluation metrics.
 
 ```bash
-agentic-eval metrics
+scora metrics
 ```
 
 Displays a table with name, tier, and description for each metric.
@@ -105,10 +105,10 @@ Displays a table with name, tier, and description for each metric.
 Run evaluation from a YAML config file. Designed for CI/CD pipelines.
 
 ```bash
-agentic-eval ci                         # auto-finds agentic-eval.yaml
-agentic-eval ci --config ./custom.yaml  # explicit path
-agentic-eval ci --fail-below 0.8        # override threshold
-agentic-eval ci --format json           # machine-readable output
+scora ci                         # auto-finds scora.yaml
+scora ci --config ./custom.yaml  # explicit path
+scora ci --fail-below 0.8        # override threshold
+scora ci --format json           # machine-readable output
 ```
 
 | Option | Description |
@@ -130,9 +130,9 @@ See [Integration Guide](integration-guide.md) for full YAML config schema.
 Launch the Streamlit evaluation dashboard.
 
 ```bash
-agentic-eval dashboard
-agentic-eval dashboard --port 8502
-agentic-eval dashboard --db ./custom.db
+scora dashboard
+scora dashboard --port 8502
+scora dashboard --db ./custom.db
 ```
 
 | Option | Description |
@@ -140,7 +140,7 @@ agentic-eval dashboard --db ./custom.db
 | `--port, -p` | Server port (default: 8501) |
 | `--db` | Database path |
 
-> Requires: `pip install agentic-eval[dashboard]`
+> Requires: `pip install scora[dashboard]`
 
 <br>
 

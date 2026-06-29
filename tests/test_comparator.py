@@ -3,11 +3,11 @@
 import pytest
 from datetime import datetime, timezone
 
-from agentic_eval.models import (
+from scora.models import (
     ComparisonVerdict, SkillSpec, SkillStep,
     Span, SpanType, Trace, ToolCall,
 )
-from agentic_eval.evaluators.comparator import SkillComparator
+from scora.evaluators.comparator import SkillComparator
 
 
 def _make_trace(output=None, tool_calls=None):

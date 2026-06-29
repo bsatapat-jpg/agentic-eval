@@ -1,4 +1,4 @@
-"""CLI entry point for agentic-eval."""
+"""CLI entry point for scora."""
 
 from __future__ import annotations
 
@@ -18,16 +18,16 @@ console = Console()
 
 
 @click.group()
-@click.version_option(package_name="agentic-eval")
+@click.version_option(package_name="scora")
 def main() -> None:
-    """agentic-eval: Trajectory-based evaluation for AI agent skills."""
+    """scora: Trajectory-based evaluation for AI agent skills."""
     pass
 
 
 @main.command()
 @click.argument("skill_path", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), help="Output JSON file path")
-@click.option("--db", type=click.Path(), default="./agentic_eval_results.db", help="Database path")
+@click.option("--db", type=click.Path(), default="./scora_results.db", help="Database path")
 @click.option("--fail-on", type=click.Choice(["critical", "warning", "any"]),
               default=None, help="Exit non-zero if findings at this severity or above")
 def security(skill_path: str, output: str | None, db: str, fail_on: str | None) -> None:
@@ -62,7 +62,7 @@ def security(skill_path: str, output: str | None, db: str, fail_on: str | None) 
 @click.option("--skill", "-s", type=str, help="Filter by skill name")
 @click.option("--verdict", "-v", type=click.Choice(["pass", "fail", "partial"]))
 @click.option("--limit", "-l", type=int, default=20)
-@click.option("--db", type=click.Path(), default="./agentic_eval_results.db")
+@click.option("--db", type=click.Path(), default="./scora_results.db")
 @click.option("--export", "-e", type=click.Path(), help="Export to JSON file")
 @click.option("--format", "output_format", type=click.Choice(["table", "json"]),
               default="table", help="Output format")
@@ -99,7 +99,7 @@ def results(
 
 
 @main.command()
-@click.option("--db", type=click.Path(), default="./agentic_eval_results.db")
+@click.option("--db", type=click.Path(), default="./scora_results.db")
 @click.option("--port", "-p", type=int, default=8501)
 def dashboard(db: str, port: int) -> None:
     """Launch the Streamlit evaluation dashboard."""
@@ -108,7 +108,7 @@ def dashboard(db: str, port: int) -> None:
     except ImportError:
         console.print(
             "[red]Streamlit not installed.[/red] Install with: "
-            "[bold]pip install agentic-eval\\[dashboard][/bold]"
+            "[bold]pip install scora\\[dashboard][/bold]"
         )
         sys.exit(1)
 
@@ -145,7 +145,7 @@ def dashboard(db: str, port: int) -> None:
 @main.command()
 @click.argument("skill_a", type=click.Path(exists=True))
 @click.argument("skill_b", type=click.Path(exists=True))
-@click.option("--db", type=click.Path(), default="./agentic_eval_results.db", help="Database path")
+@click.option("--db", type=click.Path(), default="./scora_results.db", help="Database path")
 @click.option("--format", "output_format", type=click.Choice(["table", "json"]),
               default="table", help="Output format")
 def compare(skill_a: str, skill_b: str, db: str, output_format: str) -> None:
@@ -215,7 +215,7 @@ def compare(skill_a: str, skill_b: str, db: str, output_format: str) -> None:
 
 @main.command()
 @click.option("--config", "-c", "config_path", type=click.Path(), default=None,
-              help="Path to agentic-eval.yaml config file")
+              help="Path to scora.yaml config file")
 @click.option("--fail-below", type=float, default=None,
               help="Override: fail if overall score is below this threshold")
 @click.option("--format", "output_format", type=click.Choice(["table", "json"]),
@@ -223,7 +223,7 @@ def compare(skill_a: str, skill_b: str, db: str, output_format: str) -> None:
 def ci(config_path: str | None, fail_below: float | None, output_format: str | None) -> None:
     """Run evaluation from a YAML config file (CI/CD mode).
 
-    Reads agentic-eval.yaml, runs test cases against the configured agent,
+    Reads scora.yaml, runs test cases against the configured agent,
     evaluates results, and exits non-zero if thresholds are not met.
     """
     from .config import load_config

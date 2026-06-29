@@ -2,8 +2,8 @@
 
 import pytest
 
-from agentic_eval.adapters import from_langgraph
-from agentic_eval.models import SpanType, Trace
+from scora.adapters import from_langgraph
+from scora.models import SpanType, Trace
 
 
 class TestLangGraphFromMessages:

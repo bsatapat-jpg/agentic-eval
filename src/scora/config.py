@@ -1,10 +1,10 @@
-"""YAML-based project configuration for agentic-eval.
+"""YAML-based project configuration for scora.
 
-Create an ``agentic-eval.yaml`` (or ``.agentic-eval.yaml``) at your project
+Create an ``scora.yaml`` (or ``.scora.yaml``) at your project
 root to declare skills, thresholds, test cases, and CI settings.  Then run::
 
-    agentic-eval ci                     # uses ./agentic-eval.yaml
-    agentic-eval ci --config path.yaml  # explicit path
+    scora ci                     # uses ./scora.yaml
+    scora ci --config path.yaml  # explicit path
 
 Example config::
 
@@ -96,7 +96,7 @@ class CIConfig:
     fail_below: float = 0.0
     fail_on_any_metric_below: float = 0.0
     save: bool = True
-    db_path: str = "./agentic_eval_results.db"
+    db_path: str = "./scora_results.db"
     output_format: str = "table"
     output_file: str | None = None
 
@@ -152,8 +152,8 @@ def _expand_env_recursive(obj: Any) -> Any:
 def load_config(path: str | Path | None = None) -> EvalConfig:
     """Load evaluation configuration from a YAML file.
 
-    If *path* is ``None``, searches for ``agentic-eval.yaml`` or
-    ``.agentic-eval.yaml`` in the current directory and parents.
+    If *path* is ``None``, searches for ``scora.yaml`` or
+    ``.scora.yaml`` in the current directory and parents.
 
     Args:
         path: Explicit path to the YAML config file.
@@ -187,7 +187,7 @@ def load_config(path: str | Path | None = None) -> EvalConfig:
 
 def _find_config() -> Path:
     """Search current directory and parents for a config file."""
-    names = ["agentic-eval.yaml", "agentic-eval.yml", ".agentic-eval.yaml", ".agentic-eval.yml"]
+    names = ["scora.yaml", "scora.yml", ".scora.yaml", ".scora.yml"]
     cwd = Path.cwd()
 
     for directory in [cwd, *cwd.parents]:
@@ -197,7 +197,7 @@ def _find_config() -> Path:
                 return candidate
 
     raise FileNotFoundError(
-        "No agentic-eval.yaml found. Create one or specify --config. "
+        "No scora.yaml found. Create one or specify --config. "
         "See docs/integration-guide.md for examples."
     )
 
@@ -246,7 +246,7 @@ def _parse_config(raw: dict[str, Any]) -> EvalConfig:
         fail_below=ci_raw.get("fail_below", 0.0),
         fail_on_any_metric_below=ci_raw.get("fail_on_any_metric_below", 0.0),
         save=ci_raw.get("save", True),
-        db_path=ci_raw.get("db_path", "./agentic_eval_results.db"),
+        db_path=ci_raw.get("db_path", "./scora_results.db"),
         output_format=ci_raw.get("output_format", "table"),
         output_file=ci_raw.get("output_file"),
     )

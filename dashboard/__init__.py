@@ -1,1 +1,1 @@
-"""Streamlit dashboard for agentic-eval."""
+"""Streamlit dashboard for scora."""

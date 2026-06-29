@@ -1,7 +1,7 @@
-"""Adapter for converting OpenTelemetry spans to agentic-eval format.
+"""Adapter for converting OpenTelemetry spans to scora format.
 
 Usage:
-    from agentic_eval.adapters import from_otel
+    from scora.adapters import from_otel
 
     # From OTel span dicts (e.g., exported JSON)
     trace = from_otel(otel_spans)

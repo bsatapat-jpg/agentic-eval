@@ -2,8 +2,8 @@
 
 import pytest
 
-from agentic_eval import evaluate, trace_skill, Trace
-from agentic_eval.tracer import trace_context, span_context, record_tool_call, SpanType
+from scora import evaluate, trace_skill, Trace
+from scora.tracer import trace_context, span_context, record_tool_call, SpanType
 
 
 class TestTraceContext:

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from agentic_eval import (
+from scora import (
     EvalResult,
     MetricResult,
     Trace,
@@ -19,7 +19,7 @@ from agentic_eval import (
     run_evaluation,
     scan_security,
 )
-from agentic_eval.models import Span, SpanType, ToolCall, SkillSpec
+from scora.models import Span, SpanType, ToolCall, SkillSpec
 
 
 def _make_trace(output=None, tool_calls=None):

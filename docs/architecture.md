@@ -1,6 +1,6 @@
 # Architecture
 
-> How agentic-eval is built and why.
+> How scora is built and why.
 
 <br>
 
@@ -52,9 +52,9 @@
 ## Package Structure
 
 ```
-agentic-eval/
+scora/
 │
-├── src/agentic_eval/
+├── src/scora/
 │   ├── __init__.py                  # Public API exports
 │   ├── models.py                    # Pydantic data models
 │   ├── tracer.py                    # Context managers for trace capture

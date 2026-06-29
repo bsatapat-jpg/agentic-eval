@@ -1,4 +1,4 @@
-"""Core data models for agentic-eval."""
+"""Core data models for scora."""
 
 from __future__ import annotations
 

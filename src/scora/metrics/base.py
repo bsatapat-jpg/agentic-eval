@@ -77,7 +77,7 @@ class MetricRegistry:
                 result.append(m)
             else:
                 import logging
-                logging.getLogger("agentic_eval").warning(
+                logging.getLogger("scora").warning(
                     "Unknown metric '%s'. Available: %s",
                     n,
                     ", ".join(sorted(self._metrics.keys())),

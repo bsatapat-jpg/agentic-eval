@@ -2,7 +2,7 @@
 
 > Catch prompt injection, credential exposure, and unsafe patterns **before** they reach production.
 
-agentic-eval includes a security scanner that analyses SKILL.md files for vulnerabilities that could be exploited by adversarial inputs or lead to unsafe agent behaviour.
+scora includes a security scanner that analyses SKILL.md files for vulnerabilities that could be exploited by adversarial inputs or lead to unsafe agent behaviour.
 
 <br>
 
@@ -13,7 +13,7 @@ agentic-eval includes a security scanner that analyses SKILL.md files for vulner
 **Python:**
 
 ```python
-from agentic_eval import scan_security
+from scora import scan_security
 
 report = scan_security("./SKILL.md")
 print(f"Grade: {report.grade}")        # A, B, C, D, or F
@@ -25,9 +25,9 @@ print(f"Warnings: {report.warning_count}")
 **CLI:**
 
 ```bash
-agentic-eval security ./SKILL.md
-agentic-eval security ./SKILL.md --output report.json
-agentic-eval security ./SKILL.md --fail-on critical
+scora security ./SKILL.md
+scora security ./SKILL.md --output report.json
+scora security ./SKILL.md --fail-on critical
 ```
 
 <br>
@@ -109,9 +109,9 @@ agentic-eval security ./SKILL.md --fail-on critical
 Use `--fail-on` to exit non-zero when findings are detected:
 
 ```bash
-agentic-eval security ./SKILL.md --fail-on critical   # critical only
-agentic-eval security ./SKILL.md --fail-on warning     # critical + warnings
-agentic-eval security ./SKILL.md --fail-on any         # any finding
+scora security ./SKILL.md --fail-on critical   # critical only
+scora security ./SKILL.md --fail-on warning     # critical + warnings
+scora security ./SKILL.md --fail-on any         # any finding
 ```
 
 <br>
@@ -121,7 +121,7 @@ agentic-eval security ./SKILL.md --fail-on any         # any finding
 ## Persisting Reports
 
 ```python
-from agentic_eval import scan_security, ResultStore
+from scora import scan_security, ResultStore
 
 # Save automatically
 report = scan_security("./SKILL.md", save=True, db_path="./results.db")

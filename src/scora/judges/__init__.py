@@ -1,4 +1,4 @@
-"""Judge infrastructure for agentic-eval."""
+"""Judge infrastructure for scora."""
 
 from .llm_judge import LLMJudge, JudgeResult
 from .rule_judge import RuleJudge, Rule

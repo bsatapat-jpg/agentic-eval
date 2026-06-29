@@ -1,13 +1,13 @@
 <p align="center">
-  <h1 align="center">agentic-eval</h1>
+  <h1 align="center">SCORA</h1>
   <p align="center">
-    <strong>Trajectory-based evaluation framework for AI agent skills</strong>
+    <strong>Skill Compliance, Observability, Rating & Analysis</strong>
   </p>
   <p align="center">
     Evaluate the journey, not just the destination.
   </p>
   <p align="center">
-    <a href="#installation"><img src="https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+"></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.10%E2%80%933.14-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10–3.14"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License"></a>
     <a href="#metrics"><img src="https://img.shields.io/badge/metrics-11-blueviolet?style=for-the-badge" alt="11 Metrics"></a>
     <a href="#adapters"><img src="https://img.shields.io/badge/adapters-7-orange?style=for-the-badge" alt="7 Adapters"></a>
@@ -18,7 +18,7 @@
 
 > Existing evaluation tools focus on LLM output quality. But agents are **multi-step systems** — they call tools, make decisions, recover from errors, and follow skill specifications. You need to evaluate the *entire trajectory*, not just the final answer.
 
-**agentic-eval** captures the full execution trace of your agent — every tool call, every LLM decision, every retrieval step — and scores it against your skill specs using **11 structured metrics** across 3 tiers.
+**SCORA** captures the full execution trace of your agent — every tool call, every LLM decision, every retrieval step — and scores it against your skill specs using **11 structured metrics** across 3 tiers.
 
 <br>
 
@@ -42,7 +42,7 @@
 
 ## How it compares
 
-| Feature | agentic-eval | DeepEval | AgentOps | LangSmith |
+| Feature | SCORA | DeepEval | AgentOps | LangSmith |
 |:---|:---:|:---:|:---:|:---:|
 | Trajectory-based scoring (11 metrics) | **Yes** | No | Partial | Partial |
 | MCP / RAG response validation | **Yes** | No | No | No |
@@ -62,16 +62,16 @@
 ## Installation
 
 ```bash
-pip install agentic-eval
+pip install scora
 ```
 
 <details>
 <summary><strong>Optional extras</strong></summary>
 
 ```bash
-pip install agentic-eval[llm]        # LLM-as-judge scoring (OpenAI / Anthropic)
-pip install agentic-eval[dashboard]  # Streamlit visualization dashboard
-pip install agentic-eval[all]        # Everything
+pip install scora[llm]        # LLM-as-judge scoring (OpenAI / Anthropic)
+pip install scora[dashboard]  # Streamlit visualization dashboard
+pip install scora[all]        # Everything
 ```
 </details>
 
@@ -82,7 +82,7 @@ pip install agentic-eval[all]        # Everything
 ### 1-line decorator
 
 ```python
-from agentic_eval import evaluate, record_tool_call
+from scora import evaluate, record_tool_call
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def my_agent(query: str) -> str:
@@ -96,7 +96,7 @@ my_agent.last_eval.print()       # rich console output with per-metric breakdown
 ### Functional API
 
 ```python
-from agentic_eval import run_evaluation, trace_context, record_tool_call
+from scora import run_evaluation, trace_context, record_tool_call
 
 with trace_context(input="fix the CSS") as trace:
     record_tool_call("read_file", arguments={"path": "style.css"}, result="...")
@@ -110,7 +110,7 @@ result.print()
 ### Config-driven CI (zero Python)
 
 ```yaml
-# agentic-eval.yaml
+# scora.yaml
 project: my-agent
 skills:
   - path: ./skills/search/SKILL.md
@@ -127,7 +127,7 @@ ci:
 ```
 
 ```bash
-agentic-eval ci   # reads config, calls agent, evaluates, exits non-zero on failure
+scora ci   # reads config, calls agent, evaluates, exits non-zero on failure
 ```
 
 <br>
@@ -175,7 +175,7 @@ Import traces from any agent framework — no code changes required.
         │               │             │               │
         ▼               ▼             ▼               ▼
  ┌─────────────────────────────────────────────────────────┐
- │                    agentic-eval                         │
+ │                    scora                         │
  │              from_langgraph()  from_langfuse()          │
  │              from_mlflow()    from_gemini()             │
  │              from_langchain() from_openai() from_otel() │
@@ -196,8 +196,8 @@ Import traces from any agent framework — no code changes required.
 <summary><strong>Example: Evaluate a LangGraph agent</strong></summary>
 
 ```python
-from agentic_eval.adapters import from_langgraph
-from agentic_eval import run_evaluation
+from scora.adapters import from_langgraph
+from scora import run_evaluation
 
 final_state = await graph.ainvoke({"messages": [HumanMessage("query")]})
 trace = from_langgraph(final_state)
@@ -210,8 +210,8 @@ result.print()
 <summary><strong>Example: Evaluate from Langfuse traces</strong></summary>
 
 ```python
-from agentic_eval.adapters import from_langfuse
-from agentic_eval import run_evaluation
+from scora.adapters import from_langfuse
+from scora import run_evaluation
 
 observations = langfuse.api.observations.get_many(trace_id="...", fields="core,io,usage")
 trace = from_langfuse(observations.data)
@@ -237,7 +237,7 @@ async def my_async_agent(query: str) -> str:
 <summary><strong>pytest assertions</strong></summary>
 
 ```python
-from agentic_eval import assert_skill
+from scora import assert_skill
 
 def test_search_skill():
     result = my_agent("find the bug")
@@ -250,14 +250,14 @@ def test_search_skill():
 <summary><strong>Security scanning</strong></summary>
 
 ```python
-from agentic_eval import scan_security
+from scora import scan_security
 
 report = scan_security("./SKILL.md")
 print(f"Grade: {report.grade}  Critical: {report.critical_count}")
 ```
 
 ```bash
-agentic-eval security ./SKILL.md --fail-on critical
+scora security ./SKILL.md --fail-on critical
 ```
 </details>
 
@@ -265,7 +265,7 @@ agentic-eval security ./SKILL.md --fail-on critical
 <summary><strong>A/B skill comparison</strong></summary>
 
 ```python
-from agentic_eval import compare_skills
+from scora import compare_skills
 
 result = compare_skills("./v1/SKILL.md", "./v2/SKILL.md", traces_a=v1, traces_b=v2)
 print(result.verdict)   # a_better / b_better / no_difference
@@ -277,7 +277,7 @@ print(f"Lift: {result.lift:+.2%}")
 <summary><strong>Live agent HTTP evaluation</strong></summary>
 
 ```python
-from agentic_eval import AgentEvaluator
+from scora import AgentEvaluator
 
 evaluator = AgentEvaluator(
     url="http://localhost:8000/api/chat",
@@ -294,7 +294,7 @@ results = evaluator.evaluate(
 <summary><strong>Custom metrics</strong></summary>
 
 ```python
-from agentic_eval import BaseMetric, MetricResult, register_metric
+from scora import BaseMetric, MetricResult, register_metric
 
 class LatencyMetric(BaseMetric):
     name = "latency"
@@ -314,8 +314,8 @@ register_metric(LatencyMetric())
 <summary><strong>Streamlit dashboard</strong></summary>
 
 ```bash
-pip install agentic-eval[dashboard]
-agentic-eval dashboard
+pip install scora[dashboard]
+scora dashboard
 ```
 
 Overview, trajectory viewer, comparison, and security pages.
@@ -325,12 +325,12 @@ Overview, trajectory viewer, comparison, and security pages.
 <summary><strong>CLI reference</strong></summary>
 
 ```bash
-agentic-eval security ./SKILL.md           # scan for vulnerabilities
-agentic-eval results -s "my-skill" -v fail  # view stored results
-agentic-eval compare ./v1.md ./v2.md        # compare skill versions
-agentic-eval metrics                        # list all metrics
-agentic-eval dashboard                      # launch web dashboard
-agentic-eval ci                             # run evaluation from YAML config
+scora security ./SKILL.md           # scan for vulnerabilities
+scora results -s "my-skill" -v fail  # view stored results
+scora compare ./v1.md ./v2.md        # compare skill versions
+scora metrics                        # list all metrics
+scora dashboard                      # launch web dashboard
+scora ci                             # run evaluation from YAML config
 ```
 </details>
 

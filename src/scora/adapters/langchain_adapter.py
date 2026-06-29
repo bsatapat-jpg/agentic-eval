@@ -1,8 +1,8 @@
-"""Adapter for converting LangChain/LangGraph traces to agentic-eval format.
+"""Adapter for converting LangChain/LangGraph traces to scora format.
 
 Usage:
     from langchain.callbacks import tracing_v2_enabled
-    from agentic_eval.adapters import from_langchain
+    from scora.adapters import from_langchain
 
     # Option 1: From LangSmith run
     trace = from_langchain(run_dict)
