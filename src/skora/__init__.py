@@ -1,8 +1,8 @@
-"""scora: Trajectory-based evaluation framework for AI agent skills.
+"""skora: Trajectory-based evaluation framework for AI agent skills.
 
 Quick start:
 
-    from scora import evaluate, run_evaluation, Trace
+    from skora import evaluate, run_evaluation, Trace
 
     # Decorator approach
     @evaluate(skill="./SKILL.md", auto_save=True)

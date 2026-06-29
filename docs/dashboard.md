@@ -9,22 +9,22 @@
 ## Setup
 
 ```bash
-pip install scora[dashboard]
+pip install skora[dashboard]
 ```
 
 ## Launch
 
 ```bash
-scora dashboard
-scora dashboard --port 8502
-scora dashboard --db ./custom_results.db
+skora dashboard
+skora dashboard --port 8502
+skora dashboard --db ./custom_results.db
 ```
 
 Or programmatically:
 
 ```python
 import subprocess
-subprocess.run(["scora", "dashboard", "--port", "8501"])
+subprocess.run(["skora", "dashboard", "--port", "8501"])
 ```
 
 <br>

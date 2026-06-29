@@ -1,4 +1,4 @@
-"""Adapter for converting LangGraph traces to scora format.
+"""Adapter for converting LangGraph traces to skora format.
 
 LangGraph agents produce execution data in several forms:
 
@@ -17,8 +17,8 @@ traces directly from the ``messages`` key of a LangGraph state.
 
 Usage::
 
-    from scora.adapters import from_langgraph
-    from scora import run_evaluation
+    from skora.adapters import from_langgraph
+    from skora import run_evaluation
 
     # From LangGraph state (most common)
     final_state = await graph.ainvoke({"messages": [...]})
@@ -45,7 +45,7 @@ def from_langgraph(
     *,
     trace_id: str | None = None,
 ) -> Trace:
-    """Convert LangGraph data into an scora Trace.
+    """Convert LangGraph data into an skora Trace.
 
     Args:
         data: One of:

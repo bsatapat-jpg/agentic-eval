@@ -63,7 +63,7 @@ class ResultStore:
     CREATE INDEX IF NOT EXISTS idx_verdict ON eval_results(verdict);
     """
 
-    def __init__(self, db_path: str | Path = "./scora_results.db") -> None:
+    def __init__(self, db_path: str | Path = "./skora_results.db") -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(

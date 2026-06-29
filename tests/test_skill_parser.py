@@ -2,7 +2,7 @@
 
 import pytest
 
-from scora.skill_parser import parse_skill
+from skora.skill_parser import parse_skill
 
 
 SAMPLE_SKILL_FRONTMATTER = """\

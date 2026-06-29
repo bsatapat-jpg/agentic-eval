@@ -1,7 +1,7 @@
-"""Adapter for converting OpenAI Agents SDK traces to scora format.
+"""Adapter for converting OpenAI Agents SDK traces to skora format.
 
 Usage:
-    from scora.adapters import from_openai
+    from skora.adapters import from_openai
 
     # From OpenAI response with tool calls
     trace = from_openai(messages, response)

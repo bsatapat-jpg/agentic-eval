@@ -1,6 +1,6 @@
 # Custom Metrics
 
-> Extend scora with metrics that matter to **your** use case.
+> Extend skora with metrics that matter to **your** use case.
 
 <br>
 
@@ -11,7 +11,7 @@
 Subclass `BaseMetric`, implement `score()`, and register it:
 
 ```python
-from scora import BaseMetric, MetricResult, register_metric
+from skora import BaseMetric, MetricResult, register_metric
 
 class LatencyMetric(BaseMetric):
     name = "latency"

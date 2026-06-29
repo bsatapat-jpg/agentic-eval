@@ -1,4 +1,4 @@
-"""Streamlit dashboard entry point for scora."""
+"""Streamlit dashboard entry point for skora."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ def main() -> None:
     import streamlit as st
 
     st.set_page_config(
-        page_title="scora Dashboard",
+        page_title="skora Dashboard",
         page_icon="chart_with_upwards_trend",
         layout="wide",
         initial_sidebar_state="expanded",
@@ -18,7 +18,7 @@ def main() -> None:
 
     db_path = _get_db_path()
 
-    st.sidebar.title("scora")
+    st.sidebar.title("skora")
     st.sidebar.caption("Skill Evaluation Dashboard")
 
     page = st.sidebar.radio(
@@ -44,7 +44,7 @@ def _get_db_path() -> str:
     for i, arg in enumerate(sys.argv):
         if arg == "--db" and i + 1 < len(sys.argv):
             return sys.argv[i + 1]
-    return "./scora_results.db"
+    return "./skora_results.db"
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-pip install scora
+pip install skora
 ```
 
 <details>
@@ -15,9 +15,9 @@ pip install scora
 
 | Extra | What it adds |
 |:---|:---|
-| `pip install scora[llm]` | LLM-as-judge scoring (OpenAI / Anthropic) |
-| `pip install scora[dashboard]` | Streamlit visualization dashboard |
-| `pip install scora[all]` | Everything above |
+| `pip install skora[llm]` | LLM-as-judge scoring (OpenAI / Anthropic) |
+| `pip install skora[dashboard]` | Streamlit visualization dashboard |
+| `pip install skora[all]` | Everything above |
 
 </details>
 
@@ -27,7 +27,7 @@ pip install scora
 
 ## Choose Your Style
 
-scora offers **five ways** to evaluate agents. Pick the one that fits your workflow.
+skora offers **five ways** to evaluate agents. Pick the one that fits your workflow.
 
 <br>
 
@@ -36,7 +36,7 @@ scora offers **five ways** to evaluate agents. Pick the one that fits your workf
 Wrap your agent function with `@evaluate`. It captures the full execution trace and runs all 11 metrics automatically.
 
 ```python
-from scora import evaluate, record_tool_call
+from skora import evaluate, record_tool_call
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 def my_agent(query: str) -> str:
@@ -56,7 +56,7 @@ my_agent.last_eval.print()  # Rich console output with per-metric breakdown
 Use `trace_context` to manually capture traces, then evaluate them separately. Best when you need full control.
 
 ```python
-from scora import run_evaluation, Trace, record_tool_call, trace_context
+from skora import run_evaluation, Trace, record_tool_call, trace_context
 
 with trace_context(input="fix the CSS") as trace:
     record_tool_call("read_file", arguments={"path": "style.css"}, result="...")
@@ -74,7 +74,7 @@ result.print()
 Both decorators detect async functions automatically — no extra configuration needed.
 
 ```python
-from scora import evaluate
+from skora import evaluate
 
 @evaluate(skill="./SKILL.md", auto_save=True)
 async def my_async_agent(query: str) -> str:
@@ -89,7 +89,7 @@ async def my_async_agent(query: str) -> str:
 Use `assert_skill` for test assertions with per-metric thresholds. If any metric falls below its threshold, the test fails with a detailed breakdown.
 
 ```python
-from scora import assert_skill
+from skora import assert_skill
 
 def test_code_review_skill():
     result = my_agent("review this PR")
@@ -111,7 +111,7 @@ def test_code_review_skill():
 Evaluate multiple traces at once. Ideal for nightly regression suites.
 
 ```python
-from scora import batch_evaluate
+from skora import batch_evaluate
 
 results = batch_evaluate(
     traces=recorded_traces,

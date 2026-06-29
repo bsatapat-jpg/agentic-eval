@@ -2,8 +2,8 @@
 
 import pytest
 
-from scora.adapters import from_langgraph
-from scora.models import SpanType, Trace
+from skora.adapters import from_langgraph
+from skora.models import SpanType, Trace
 
 
 class TestLangGraphFromMessages:

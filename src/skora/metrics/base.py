@@ -77,7 +77,7 @@ class MetricRegistry:
                 result.append(m)
             else:
                 import logging
-                logging.getLogger("scora").warning(
+                logging.getLogger("skora").warning(
                     "Unknown metric '%s'. Available: %s",
                     n,
                     ", ".join(sorted(self._metrics.keys())),

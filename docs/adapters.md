@@ -2,7 +2,7 @@
 
 > Import traces from **any** agent framework — no code changes required.
 
-Each adapter converts framework-specific data into scora's `Trace` format, so you can evaluate agents regardless of how they were built.
+Each adapter converts framework-specific data into skora's `Trace` format, so you can evaluate agents regardless of how they were built.
 
 ```
  ┌───────────┐ ┌───────────┐ ┌──────────┐ ┌────────┐ ┌──────────┐ ┌────────┐ ┌──────┐
@@ -11,7 +11,7 @@ Each adapter converts framework-specific data into scora's `Trace` format, so yo
        └──────────────┴────────────┴───────────┴───────────┴───────────┴─────────┘
                                            │
                                     ┌──────▼──────┐
-                                    │ scora │
+                                    │ skora │
                                     │    Trace     │
                                     └─────────────┘
 ```
@@ -37,8 +37,8 @@ Each adapter converts framework-specific data into scora's `Trace` format, so yo
 Converts LangGraph agent state, message lists, or streaming events.
 
 ```python
-from scora.adapters import from_langgraph
-from scora import run_evaluation
+from skora.adapters import from_langgraph
+from skora import run_evaluation
 
 # From LangGraph state (most common)
 final_state = await graph.ainvoke({"messages": [HumanMessage("query")]})
@@ -60,7 +60,7 @@ result.print()
 
 **Messages:**
 
-| LangChain type | scora type |
+| LangChain type | skora type |
 |:---|:---|
 | `AIMessage` / `ai` | `LLM_CALL` (with child `TOOL_CALL` spans) |
 | `ToolMessage` / `tool` | `TOOL_CALL` (with result) |
@@ -68,7 +68,7 @@ result.print()
 
 **Streaming events:**
 
-| Event | scora type |
+| Event | skora type |
 |:---|:---|
 | `on_chat_model_end` | `LLM_CALL` |
 | `on_tool_start` / `on_tool_end` | `TOOL_CALL` |
@@ -85,8 +85,8 @@ result.print()
 Supports both the **v2 observation-list** format and **legacy trace dicts**.
 
 ```python
-from scora.adapters import from_langfuse
-from scora import run_evaluation
+from skora.adapters import from_langfuse
+from skora import run_evaluation
 
 # v2 API (recommended)
 observations = langfuse.api.observations.get_many(
@@ -106,7 +106,7 @@ result.print()
 <details>
 <summary><strong>Type mappings & features</strong></summary>
 
-| Langfuse type | scora type |
+| Langfuse type | skora type |
 |:---|:---|
 | `GENERATION` | `LLM_CALL` |
 | `SPAN` | `AGENT_STEP` |
@@ -128,8 +128,8 @@ Names containing "retriev", "search", "rag", or "vector" are inferred as `RETRIE
 Accepts MLflow `Trace` objects, serialised trace dicts, or plain span lists.
 
 ```python
-from scora.adapters import from_mlflow
-from scora import run_evaluation
+from skora.adapters import from_mlflow
+from skora import run_evaluation
 import mlflow
 
 # From an MLflow Trace object
@@ -149,7 +149,7 @@ result.print()
 <details>
 <summary><strong>Type mappings (all 15 MLflow SpanTypes)</strong></summary>
 
-| MLflow SpanType | scora type |
+| MLflow SpanType | skora type |
 |:---|:---|
 | `TOOL` | `TOOL_CALL` |
 | `RETRIEVER` | `RETRIEVAL` |
@@ -170,8 +170,8 @@ result.print()
 Works with both `google-genai` (new unified SDK) and `google-generativeai` (older SDK).
 
 ```python
-from scora.adapters import from_gemini
-from scora import run_evaluation
+from skora.adapters import from_gemini
+from skora import run_evaluation
 
 # From chat history
 trace = from_gemini(chat.history, model="gemini-2.0-flash")
@@ -197,7 +197,7 @@ result.print()
 Converts LangSmith run dicts or LangChain callback data.
 
 ```python
-from scora.adapters import from_langchain
+from skora.adapters import from_langchain
 
 trace = from_langchain(langsmith_run_dict)
 result = run_evaluation(trace, skill="./SKILL.md")
@@ -229,7 +229,7 @@ result = run_evaluation(trace, skill="./SKILL.md")
 Converts OpenAI ChatCompletion message lists and tool call responses.
 
 ```python
-from scora.adapters import from_openai
+from skora.adapters import from_openai
 
 trace = from_openai(messages=conversation)
 trace = from_openai(messages=conversation, response=api_response)
@@ -247,7 +247,7 @@ result = run_evaluation(trace, skill="./SKILL.md")
 Converts OTel span exports (JSON format) into hierarchical traces.
 
 ```python
-from scora.adapters import from_otel
+from skora.adapters import from_otel
 
 trace = from_otel(exported_spans)
 trace = from_otel(exported_spans, trace_id="custom-id")
@@ -277,7 +277,7 @@ result = run_evaluation(trace, skill="./SKILL.md")
 If your framework isn't covered, create your own:
 
 ```python
-from scora.models import Trace, Span, SpanType, ToolCall
+from skora.models import Trace, Span, SpanType, ToolCall
 from datetime import datetime, timezone
 
 def from_my_framework(data: dict) -> Trace:

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from scora import (
+from skora import (
     EvalResult,
     MetricResult,
     Trace,
@@ -19,7 +19,7 @@ from scora import (
     run_evaluation,
     scan_security,
 )
-from scora.models import Span, SpanType, ToolCall, SkillSpec
+from skora.models import Span, SpanType, ToolCall, SkillSpec
 
 
 def _make_trace(output=None, tool_calls=None):

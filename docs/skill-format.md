@@ -1,8 +1,8 @@
 # SKILL.md Format
 
-> Define what your agent is *supposed to do* — scora evaluates how well it actually does it.
+> Define what your agent is *supposed to do* — skora evaluates how well it actually does it.
 
-scora parses Cursor-style `SKILL.md` files to extract structured information from both YAML frontmatter and markdown body.
+skora parses Cursor-style `SKILL.md` files to extract structured information from both YAML frontmatter and markdown body.
 
 <br>
 
@@ -139,7 +139,7 @@ Tool names inside backticks within step descriptions are **automatically extract
 ## Using Parsed Skills in Code
 
 ```python
-from scora import parse_skill
+from skora import parse_skill
 
 spec = parse_skill("./SKILL.md")
 

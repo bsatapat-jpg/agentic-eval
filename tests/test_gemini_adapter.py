@@ -2,8 +2,8 @@
 
 import pytest
 
-from scora.adapters import from_gemini
-from scora.models import SpanType, Trace
+from skora.adapters import from_gemini
+from skora.models import SpanType, Trace
 
 
 class TestGeminiBasicConversation:

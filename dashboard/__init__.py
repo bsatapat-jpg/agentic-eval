@@ -1,1 +1,1 @@
-"""Streamlit dashboard for scora."""
+"""Streamlit dashboard for skora."""

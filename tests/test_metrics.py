@@ -3,17 +3,17 @@
 import pytest
 from datetime import datetime, timezone
 
-from scora.models import (
+from skora.models import (
     MetricResult, SkillSpec, SkillStep, Span, SpanType,
     Trace, ToolCall,
 )
-from scora.metrics.task_completion import TaskCompletionMetric
-from scora.metrics.instruction_fidelity import InstructionFidelityMetric
-from scora.metrics.output_correctness import OutputCorrectnessMetric
-from scora.metrics.step_deviation import StepDeviationMetric
-from scora.metrics.tool_selection import ToolSelectionMetric
-from scora.metrics.error_recovery import ErrorRecoveryMetric
-from scora.metrics.action_economy import ActionEconomyMetric
+from skora.metrics.task_completion import TaskCompletionMetric
+from skora.metrics.instruction_fidelity import InstructionFidelityMetric
+from skora.metrics.output_correctness import OutputCorrectnessMetric
+from skora.metrics.step_deviation import StepDeviationMetric
+from skora.metrics.tool_selection import ToolSelectionMetric
+from skora.metrics.error_recovery import ErrorRecoveryMetric
+from skora.metrics.action_economy import ActionEconomyMetric
 
 
 def _make_trace(output=None, tool_calls=None, errors=None):

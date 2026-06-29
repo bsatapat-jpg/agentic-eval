@@ -5,7 +5,7 @@
 <br>
 
 ```
-scora <command> [options]
+skora <command> [options]
 ```
 
 | Command | Description |
@@ -26,16 +26,16 @@ scora <command> [options]
 Scan a SKILL.md file for security vulnerabilities.
 
 ```bash
-scora security ./SKILL.md
-scora security ./SKILL.md --output report.json
-scora security ./SKILL.md --fail-on critical
+skora security ./SKILL.md
+skora security ./SKILL.md --output report.json
+skora security ./SKILL.md --fail-on critical
 ```
 
 | Option | Description |
 |:---|:---|
 | `SKILL_PATH` | Path to SKILL.md file *(required)* |
 | `--output, -o` | Export report to JSON file |
-| `--db` | Database path (default: `./scora_results.db`) |
+| `--db` | Database path (default: `./skora_results.db`) |
 | `--fail-on` | Exit non-zero on findings: `critical`, `warning`, or `any` |
 
 <br>
@@ -47,10 +47,10 @@ scora security ./SKILL.md --fail-on critical
 View stored evaluation results.
 
 ```bash
-scora results
-scora results -s "my-skill" -v fail
-scora results --limit 50 --format json
-scora results --export report.json
+skora results
+skora results -s "my-skill" -v fail
+skora results --limit 50 --format json
+skora results --export report.json
 ```
 
 | Option | Description |
@@ -71,8 +71,8 @@ scora results --export report.json
 Compare two SKILL.md files (security + stored evaluation metrics).
 
 ```bash
-scora compare ./v1/SKILL.md ./v2/SKILL.md
-scora compare ./v1/SKILL.md ./v2/SKILL.md --format json
+skora compare ./v1/SKILL.md ./v2/SKILL.md
+skora compare ./v1/SKILL.md ./v2/SKILL.md --format json
 ```
 
 | Option | Description |
@@ -91,7 +91,7 @@ scora compare ./v1/SKILL.md ./v2/SKILL.md --format json
 List all registered evaluation metrics.
 
 ```bash
-scora metrics
+skora metrics
 ```
 
 Displays a table with name, tier, and description for each metric.
@@ -105,10 +105,10 @@ Displays a table with name, tier, and description for each metric.
 Run evaluation from a YAML config file. Designed for CI/CD pipelines.
 
 ```bash
-scora ci                         # auto-finds scora.yaml
-scora ci --config ./custom.yaml  # explicit path
-scora ci --fail-below 0.8        # override threshold
-scora ci --format json           # machine-readable output
+skora ci                         # auto-finds skora.yaml
+skora ci --config ./custom.yaml  # explicit path
+skora ci --fail-below 0.8        # override threshold
+skora ci --format json           # machine-readable output
 ```
 
 | Option | Description |
@@ -130,9 +130,9 @@ See [Integration Guide](integration-guide.md) for full YAML config schema.
 Launch the Streamlit evaluation dashboard.
 
 ```bash
-scora dashboard
-scora dashboard --port 8502
-scora dashboard --db ./custom.db
+skora dashboard
+skora dashboard --port 8502
+skora dashboard --db ./custom.db
 ```
 
 | Option | Description |
@@ -140,7 +140,7 @@ scora dashboard --db ./custom.db
 | `--port, -p` | Server port (default: 8501) |
 | `--db` | Database path |
 
-> Requires: `pip install scora[dashboard]`
+> Requires: `pip install skora[dashboard]`
 
 <br>
 

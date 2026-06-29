@@ -1,10 +1,10 @@
 """Framework adapters for importing traces from popular agent frameworks.
 
-Adapters convert framework-specific trace formats into scora's
+Adapters convert framework-specific trace formats into skora's
 Trace/Span model so you can evaluate agents built with any framework.
 
-    from scora.adapters import from_gemini, from_openai, from_langchain
-    from scora.adapters import from_langfuse, from_mlflow
+    from skora.adapters import from_gemini, from_openai, from_langchain
+    from skora.adapters import from_langfuse, from_mlflow
 
     trace = from_gemini(contents, response=gemini_response)
     result = run_evaluation(trace, skill="./SKILL.md")
