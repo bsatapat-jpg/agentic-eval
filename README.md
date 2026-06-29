@@ -7,7 +7,7 @@
     Evaluate the journey, not just the destination.
   </p>
   <p align="center">
-    <a href="#installation"><img src="https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+"></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.10%E2%80%933.14-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10–3.14"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License"></a>
     <a href="#metrics"><img src="https://img.shields.io/badge/metrics-11-blueviolet?style=for-the-badge" alt="11 Metrics"></a>
     <a href="#adapters"><img src="https://img.shields.io/badge/adapters-7-orange?style=for-the-badge" alt="7 Adapters"></a>
