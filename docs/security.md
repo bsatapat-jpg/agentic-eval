@@ -104,6 +104,42 @@ skora security ./SKILL.md --fail-on critical
 
 ---
 
+## Deep Scanning with SkillSpector
+
+For production workloads that need deeper coverage, SKORA integrates with [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector) — a dedicated security scanner with 68 patterns across 17 categories and optional LLM-powered semantic analysis.
+
+**Python:**
+
+```python
+from skora import scan_security_deep
+
+report = scan_security_deep("./SKILL.md")
+print(f"Grade: {report.grade}")
+print(f"Tool: {report.tool_used}")  # "skillspector" or "built-in"
+```
+
+**CLI:**
+
+```bash
+skora scan ./SKILL.md                    # deep scan (falls back to built-in if not installed)
+skora scan ./SKILL.md --use-llm          # enable LLM semantic analysis
+skora scan ./SKILL.md --format sarif     # SARIF output for CI integration
+```
+
+> **Installation:** `pip install skillspector` (or `pip install skora[security]`). When skillspector is not installed, `scan_security_deep()` and `skora scan` fall back to the built-in 18-pattern scanner with a warning.
+
+| Feature | Built-in (`skora security`) | Deep scan (`skora scan`) |
+|:---|:---:|:---:|
+| Pattern count | 18 | 68 |
+| Categories | 5 | 17 |
+| SARIF output | No | Yes |
+| LLM semantic analysis | No | Optional |
+| External dependency | None | skillspector |
+
+<br>
+
+---
+
 ## CI/CD Integration
 
 Use `--fail-on` to exit non-zero when findings are detected:

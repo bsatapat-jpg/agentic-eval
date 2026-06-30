@@ -14,7 +14,10 @@ from typing import Any, Callable, Sequence
 from .models import (
     ComparisonResult,
     EvalResult,
+    FullEvalReport,
     MetricResult,
+    QualityReport,
+    SecurityReport,
     SkillSpec,
     Trace,
     Verdict,
@@ -260,6 +263,174 @@ def scan_security(
             store.save_security_report(report)
 
     return report
+
+
+def check_quality(
+    skill: str | Path,
+    fix: bool = False,
+) -> QualityReport:
+    """Pillar 4: Run quality checks on a skill (requires skillsaw).
+
+        report = check_quality("./SKILL.md")
+        print(f"Grade: {report.grade}, Violations: {report.total_violations}")
+
+    Args:
+        skill: Path to SKILL.md file or directory.
+        fix: If True, auto-fix violations via skillsaw --fix.
+
+    Returns:
+        QualityReport with grade, violations, and counts.
+
+    Raises:
+        ToolNotInstalledError: If skillsaw is not installed.
+    """
+    from .integrations.skillsaw import run_quality_check
+
+    return run_quality_check(skill, fix=fix)
+
+
+def scan_security_deep(
+    skill: str | Path,
+    use_llm: bool = False,
+    save: bool = False,
+    db_path: str = "./skora_results.db",
+) -> SecurityReport:
+    """Pillar 2: Run deep security scan via SkillSpector.
+
+    Falls back to SKORA's built-in scanner if skillspector is not installed.
+
+        report = scan_security_deep("./SKILL.md")
+        print(f"Grade: {report.grade}, Critical: {report.critical_count}")
+
+    Args:
+        skill: Path to SKILL.md file or directory.
+        use_llm: Enable LLM-based analysis in SkillSpector.
+        save: Persist the report to the database.
+        db_path: Database path.
+
+    Returns:
+        SecurityReport with findings, grade, and score.
+    """
+    from .integrations.skillspector import run_skillspector
+
+    report = run_skillspector(skill, use_llm=use_llm)
+
+    if save:
+        from .store import ResultStore
+        with ResultStore(db_path) as store:
+            store.save_security_report(report)
+
+    return report
+
+
+def evaluate_skill_full(
+    skill: str | Path,
+    trace: Trace | None = None,
+    expected_output: Any = None,
+) -> FullEvalReport:
+    """Run all 4 pillars on a skill and return a unified report.
+
+        report = evaluate_skill_full("./SKILL.md", trace=my_trace)
+        print(f"Overall: {report.overall_grade}")
+
+    Args:
+        skill: Path to SKILL.md file or directory.
+        trace: Agent execution trace for Pillar 1 (adherence evaluation).
+        expected_output: Expected output for correctness comparison.
+
+    Returns:
+        FullEvalReport combining adherence, security, comparison, and quality.
+    """
+    import logging
+
+    logger = logging.getLogger(__name__)
+    skill_path = Path(skill).resolve()
+    skill_name = skill_path.stem
+
+    adherence_result: EvalResult | None = None
+    if trace is not None:
+        try:
+            adherence_result = run_evaluation(
+                trace=trace,
+                skill=skill,
+                expected_output=expected_output,
+            )
+        except Exception:
+            logger.warning("Pillar 1 (adherence) evaluation failed", exc_info=True)
+
+    security_result: SecurityReport | None = None
+    try:
+        security_result = scan_security_deep(skill)
+    except Exception:
+        logger.warning("Pillar 2 (security) scan failed", exc_info=True)
+
+    quality_result: QualityReport | None = None
+    try:
+        quality_result = check_quality(skill)
+    except Exception:
+        logger.warning("Pillar 4 (quality) check failed", exc_info=True)
+
+    overall_grade = _compute_overall_grade(adherence_result, security_result, quality_result)
+
+    return FullEvalReport(
+        skill_name=skill_name,
+        skill_path=str(skill_path),
+        adherence=adherence_result,
+        security=security_result,
+        quality=quality_result,
+        overall_grade=overall_grade,
+    )
+
+
+def _compute_overall_grade(
+    adherence: EvalResult | None,
+    security: SecurityReport | None,
+    quality: QualityReport | None,
+) -> str:
+    """Derive a combined letter grade from available pillar results."""
+    grade_values = {"A+": 4.3, "A": 4.0, "B": 3.0, "C": 2.0, "D": 1.0, "F": 0.0}
+    grades: list[float] = []
+
+    if adherence is not None:
+        grade_str = adherence.metadata.get("grade", "")
+        if grade_str in grade_values:
+            grades.append(grade_values[grade_str])
+        elif adherence.overall_score >= 0:
+            score = adherence.overall_score
+            if score >= 0.95:
+                grades.append(4.3)
+            elif score >= 0.9:
+                grades.append(4.0)
+            elif score >= 0.8:
+                grades.append(3.0)
+            elif score >= 0.7:
+                grades.append(2.0)
+            elif score >= 0.6:
+                grades.append(1.0)
+            else:
+                grades.append(0.0)
+
+    if security is not None and security.grade in grade_values:
+        grades.append(grade_values[security.grade])
+
+    if quality is not None and quality.grade in grade_values:
+        grades.append(grade_values[quality.grade])
+
+    if not grades:
+        return "U"
+
+    avg = sum(grades) / len(grades)
+    if avg >= 4.15:
+        return "A+"
+    if avg >= 3.5:
+        return "A"
+    if avg >= 2.5:
+        return "B"
+    if avg >= 1.5:
+        return "C"
+    if avg >= 0.5:
+        return "D"
+    return "F"
 
 
 def _resolve_skill(skill: str | Path | SkillSpec | None) -> SkillSpec | None:

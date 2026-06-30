@@ -319,3 +319,50 @@ class ComparisonResult(BaseModel):
     eval_results_a: list[EvalResult] = Field(default_factory=list)
     eval_results_b: list[EvalResult] = Field(default_factory=list)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# --- Quality Models (Pillar 4) ---
+
+
+class QualityViolation(BaseModel):
+    """A single quality violation from a skillsaw lint check."""
+
+    rule_id: str
+    severity: Severity
+    message: str
+    file_path: str | None = None
+    line_number: int | None = None
+    fixable: bool = False
+
+
+class QualityReport(BaseModel):
+    """Complete quality check report from skillsaw."""
+
+    skill_path: str
+    skill_name: str
+    grade: str = "U"
+    violations: list[QualityViolation] = Field(default_factory=list)
+    error_count: int = 0
+    warning_count: int = 0
+    info_count: int = 0
+    spec_compliant: bool = False
+    tool_used: str = "skillsaw"
+
+    @property
+    def total_violations(self) -> int:
+        return self.error_count + self.warning_count + self.info_count
+
+
+# --- Full Evaluation Report (all 4 pillars) ---
+
+
+class FullEvalReport(BaseModel):
+    """Unified report combining all 4 evaluation pillars."""
+
+    skill_name: str
+    skill_path: str
+    adherence: EvalResult | None = None
+    security: SecurityReport | None = None
+    comparison: ComparisonResult | None = None
+    quality: QualityReport | None = None
+    overall_grade: str = "U"

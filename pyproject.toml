@@ -44,9 +44,21 @@ dashboard = [
     "plotly>=5.0",
     "pandas>=2.0",
 ]
+quality = [
+    "skillsaw>=0.14",
+]
+security = [
+    # skillspector is not on PyPI — install from GitHub:
+    # pip install git+https://github.com/NVIDIA/SkillSpector.git
+]
+tools = [
+    "skora[quality]",
+    # skora[security] requires manual install of skillspector (see above)
+]
 all = [
     "skora[llm]",
     "skora[dashboard]",
+    "skora[quality]",
 ]
 dev = [
     "pytest>=8.0",

@@ -19,7 +19,10 @@ from .models import (
     ComparisonResult,
     ComparisonVerdict,
     EvalResult,
+    FullEvalReport,
     MetricResult,
+    QualityReport,
+    QualityViolation,
     SecurityFinding,
     SecurityReport,
     Severity,
@@ -48,10 +51,13 @@ from .assertions import assert_skill, load_golden_cases, SkillAssertionError
 from .store import ResultStore
 from .api import (
     batch_evaluate,
+    check_quality,
     compare_skills,
+    evaluate_skill_full,
     list_metrics,
     run_evaluation,
     scan_security,
+    scan_security_deep,
 )
 from .metrics import get_registry, register_metric
 from .metrics.base import BaseMetric
@@ -66,7 +72,10 @@ __all__ = [
     "ComparisonResult",
     "ComparisonVerdict",
     "EvalResult",
+    "FullEvalReport",
     "MetricResult",
+    "QualityReport",
+    "QualityViolation",
     "SecurityFinding",
     "SecurityReport",
     "Severity",
@@ -94,10 +103,13 @@ __all__ = [
     "trace_skill",
     # High-level API
     "batch_evaluate",
+    "check_quality",
     "compare_skills",
+    "evaluate_skill_full",
     "list_metrics",
     "run_evaluation",
     "scan_security",
+    "scan_security_deep",
     # Assertions
     "assert_skill",
     "load_golden_cases",

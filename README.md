@@ -40,6 +40,35 @@
 
 <br>
 
+## 4 Pillars of Evaluation
+
+SKORA implements the [Standardized Skill Evaluation Framework](../Proposal_%20Standardized%20Skill%20Evaluation%20Framework.md) — four complementary dimensions that together answer *"is this skill production-ready?"*
+
+```
+  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐
+  │  Pillar 1            │  │  Pillar 2            │  │  Pillar 3            │  │  Pillar 4            │
+  │  Skill Adherence     │  │  Security             │  │  Skill Comparison    │  │  Quality Checks      │
+  │─────────────────────│  │─────────────────────│  │─────────────────────│  │─────────────────────│
+  │  Does the agent      │  │  Is the skill robust  │  │  Is version B better │  │  Does the skill meet │
+  │  follow SKILL.md?    │  │  against attacks?     │  │  than version A?     │  │  format & content    │
+  │                      │  │                       │  │                      │  │  standards?          │
+  │  ✔ 11 metrics        │  │  ✔ Built-in scanner   │  │  ✔ A/B comparison    │  │  ✔ skillsaw (40+     │
+  │  ✔ 3 tiers           │  │  ✔ skillspector deep  │  │  ✔ Statistical lift  │  │    rules, auto-fix)  │
+  │  ✔ Trajectory eval   │  │    scan (68 patterns) │  │  ✔ Ground truth eval │  │  ✔ Spec compliance   │
+  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘
+```
+
+| Pillar | What it answers | SKORA feature | External tool |
+|:---|:---|:---|:---|
+| **1 — Skill Adherence** | Does the agent follow the SKILL.md spec? | `run_evaluation()`, 11 metrics across 3 tiers | — |
+| **2 — Security** | Is the skill safe from adversarial inputs? | `scan_security()` (built-in), `scan_security_deep()` | [skillspector](https://github.com/NVIDIA/SkillSpector) (68 patterns) |
+| **3 — Skill Comparison** | Is version B better than A? | `compare_skills()` with statistical lift | — |
+| **4 — Quality Checks** | Does the skill meet structural standards? | `check_quality()` | [skillsaw](https://pypi.org/project/skillsaw/) (40+ rules, auto-fix) |
+
+> **Unified evaluation:** `evaluate_skill_full()` runs all 4 pillars in one call and returns a combined `FullEvalReport`.
+
+<br>
+
 ## How it compares
 
 | Feature | SKORA | DeepEval | AgentOps | LangSmith |
@@ -50,7 +79,8 @@
 | Groundedness scoring | **Yes** | Yes | No | Partial |
 | SKILL.md parsing | **Yes** | No | No | No |
 | Decorator API (sync + async) | **Yes** | Yes | No | No |
-| Security scanning | **Yes** | No | No | No |
+| Security scanning (built-in + [skillspector](https://github.com/NVIDIA/SkillSpector)) | **Yes** | No | No | No |
+| Quality checks ([skillsaw](https://pypi.org/project/skillsaw/) integration) | **Yes** | No | No | No |
 | A/B skill comparison | **Yes** | No | No | No |
 | Framework adapters | **7** | N/A | N/A | 1 |
 | Config-driven CI/CD (YAML) | **Yes** | No | No | Partial |
@@ -71,8 +101,28 @@ pip install skora
 ```bash
 pip install skora[llm]        # LLM-as-judge scoring (OpenAI / Anthropic)
 pip install skora[dashboard]  # Streamlit visualization dashboard
+pip install skora[quality]    # skillsaw integration (Pillar 4: Quality Checks)
+pip install skora[security]   # skillspector integration (Pillar 2: Deep Security)
+pip install skora[tools]      # Both skillsaw + skillspector
 pip install skora[all]        # Everything
 ```
+</details>
+
+<details>
+<summary><strong>External tool installation (optional)</strong></summary>
+
+SKORA works standalone, but integrates with external tools for deeper analysis:
+
+```bash
+# Pillar 4 — Quality Checks (skillsaw)
+pip install skillsaw          # 40+ rules, auto-fix, spec compliance
+
+# Pillar 2 — Deep Security Scanning (NVIDIA SkillSpector)
+pip install skillspector      # 68 patterns, 17 categories, SARIF output
+```
+
+> Both tools are optional. SKORA's built-in scanner handles security without skillspector, and quality checks are only available when skillsaw is installed.
+
 </details>
 
 <br>
@@ -325,7 +375,10 @@ Overview, trajectory viewer, comparison, and security pages.
 <summary><strong>CLI reference</strong></summary>
 
 ```bash
-skora security ./SKILL.md           # scan for vulnerabilities
+skora security ./SKILL.md           # scan for vulnerabilities (built-in)
+skora scan ./SKILL.md               # deep security scan via skillspector
+skora quality ./SKILL.md            # quality checks via skillsaw
+skora quality ./SKILL.md --fix      # auto-fix quality issues
 skora results -s "my-skill" -v fail  # view stored results
 skora compare ./v1.md ./v2.md        # compare skill versions
 skora metrics                        # list all metrics
@@ -351,22 +404,26 @@ skora ci                             # run evaluation from YAML config
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
-│                 Evaluation Engine (11 Metrics)                │
+│                    4-Pillar Evaluation                        │
 │                                                              │
-│   Tier 1 (5)           Tier 2 (5)           Tier 3 (1)       │
-│   ┌──────────────┐    ┌──────────────┐    ┌────────────┐     │
-│   │ Completion   │    │ Step Deviat. │    │  Action    │     │
-│   │ Fidelity     │    │ Tool Select. │    │  Economy   │     │
-│   │ Correctness  │    │ Alignment    │    └────────────┘     │
-│   │ Groundedness │    │ Recovery     │                       │
-│   │ Hallucinate  │    │ Optimality   │                       │
-│   └──────────────┘    └──────────────┘                       │
+│  Pillar 1: Adherence     Pillar 2: Security                  │
+│  ┌──────────────────┐    ┌──────────────────────────────┐    │
+│  │ 11 Metrics (3T)  │    │ Built-in Scanner (18 rules)  │    │
+│  │ LLM + Heuristic  │    │ + skillspector (68 patterns) │    │
+│  └──────────────────┘    └──────────────────────────────┘    │
+│                                                              │
+│  Pillar 3: Comparison    Pillar 4: Quality                   │
+│  ┌──────────────────┐    ┌──────────────────────────────┐    │
+│  │ A/B Testing      │    │ skillsaw (40+ rules)         │    │
+│  │ Ground Truth     │    │ Spec compliance + auto-fix   │    │
+│  │ Statistical Lift │    │ Content intelligence         │    │
+│  └──────────────────┘    └──────────────────────────────┘    │
 │                                                              │
 │   Judges:  Rule-based  ·  LLM-as-Judge (OpenAI / Claude)    │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
-│   Security Scanner  ·  Skill Comparator  ·  Result Store     │
+│   Result Store  ·  Integrations (skillsaw · skillspector)    │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
