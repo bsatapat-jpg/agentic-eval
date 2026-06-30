@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">SKORA</h1>
   <p align="center">
-    <strong>Skill Compliance, Observability, Rating & Analysis</strong>
+    <strong>Skill Knowledge, Observability, Rating & Analysis</strong>
   </p>
   <p align="center">
     Evaluate the journey, not just the destination.
@@ -42,7 +42,7 @@
 
 ## 4 Pillars of Evaluation
 
-SKORA implements the [Standardized Skill Evaluation Framework](../Proposal_%20Standardized%20Skill%20Evaluation%20Framework.md) — four complementary dimensions that together answer *"is this skill production-ready?"*
+SKORA implements a **Standardized Skill Evaluation Framework** — four complementary dimensions that together answer *"is this skill production-ready?"*
 
 ```
   ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐
@@ -115,10 +115,11 @@ SKORA works standalone, but integrates with external tools for deeper analysis:
 
 ```bash
 # Pillar 4 — Quality Checks (skillsaw)
-pip install skillsaw          # 40+ rules, auto-fix, spec compliance
+pip install skillsaw                                          # 40+ rules, auto-fix
 
 # Pillar 2 — Deep Security Scanning (NVIDIA SkillSpector)
-pip install skillspector      # 68 patterns, 17 categories, SARIF output
+git clone https://github.com/NVIDIA/SkillSpector.git
+cd SkillSpector && pip install -e .                           # 68 patterns, 17 categories
 ```
 
 > Both tools are optional. SKORA's built-in scanner handles security without skillspector, and quality checks are only available when skillsaw is installed.
@@ -225,7 +226,7 @@ Import traces from any agent framework — no code changes required.
         │               │             │               │
         ▼               ▼             ▼               ▼
  ┌─────────────────────────────────────────────────────────┐
- │                    skora                         │
+ │                       SKORA                            │
  │              from_langgraph()  from_langfuse()          │
  │              from_mlflow()    from_gemini()             │
  │              from_langchain() from_openai() from_otel() │
@@ -300,14 +301,50 @@ def test_search_skill():
 <summary><strong>Security scanning</strong></summary>
 
 ```python
-from skora import scan_security
+from skora import scan_security, scan_security_deep
 
+# Built-in scanner (always available)
 report = scan_security("./SKILL.md")
 print(f"Grade: {report.grade}  Critical: {report.critical_count}")
+
+# Deep scan via NVIDIA SkillSpector (68 patterns, 17 categories)
+report = scan_security_deep("./SKILL.md")
 ```
 
 ```bash
-skora security ./SKILL.md --fail-on critical
+skora security ./SKILL.md --fail-on critical   # built-in
+skora scan ./SKILL.md --fail-on critical        # deep scan via skillspector
+```
+</details>
+
+<details>
+<summary><strong>Quality checks (skillsaw)</strong></summary>
+
+```python
+from skora import check_quality
+
+report = check_quality("./SKILL.md")
+print(f"Grade: {report.grade}  Spec compliant: {report.spec_compliant}")
+```
+
+```bash
+skora quality ./SKILL.md                # lint for 40+ rules
+skora quality ./SKILL.md --fix          # auto-fix issues
+skora quality ./SKILL.md --fail-on error  # CI gate
+```
+</details>
+
+<details>
+<summary><strong>Full 4-pillar evaluation</strong></summary>
+
+```python
+from skora import evaluate_skill_full
+
+report = evaluate_skill_full("./SKILL.md", trace=my_trace)
+print(f"Overall: {report.overall_grade}")
+print(f"Adherence: {report.adherence.overall_score if report.adherence else 'N/A'}")
+print(f"Security:  {report.security.grade if report.security else 'N/A'}")
+print(f"Quality:   {report.quality.grade if report.quality else 'N/A'}")
 ```
 </details>
 
