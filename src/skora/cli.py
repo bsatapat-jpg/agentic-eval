@@ -377,6 +377,92 @@ def ci(config_path: str | None, fail_below: float | None, output_format: str | N
     sys.exit(exit_code)
 
 
+@main.command()
+@click.argument("skill_path", type=click.Path(exists=True))
+@click.option("--fix", is_flag=True, default=False, help="Auto-fix violations where possible")
+@click.option("--format", "output_format", type=click.Choice(["table", "json"]),
+              default="table", help="Output format")
+@click.option("--fail-on", type=click.Choice(["error", "warning", "any"]),
+              default=None, help="Exit non-zero if violations at this severity or above")
+def quality(skill_path: str, fix: bool, output_format: str, fail_on: str | None) -> None:
+    """Run quality checks on a SKILL.md (Pillar 4 — requires skillsaw)."""
+    from .integrations.skillsaw import run_quality_check
+
+    console.print(f"\n[bold]Quality check:[/bold] {skill_path}\n")
+
+    try:
+        report = run_quality_check(skill_path, fix=fix)
+    except FileNotFoundError as e:
+        console.print(f"[red]{e}[/red]")
+        console.print("[dim]Install with: pip install 'skora[quality]'[/dim]")
+        sys.exit(1)
+
+    if output_format == "json":
+        click.echo(json.dumps(report.model_dump(), indent=2, default=str))
+    else:
+        _display_quality_report(report)
+
+    if fail_on:
+        if fail_on == "error" and report.error_count > 0:
+            sys.exit(1)
+        elif fail_on == "warning" and (report.error_count + report.warning_count) > 0:
+            sys.exit(1)
+        elif fail_on == "any" and len(report.violations) > 0:
+            sys.exit(1)
+
+
+@main.command()
+@click.argument("skill_path", type=click.Path(exists=True))
+@click.option("--use-llm", is_flag=True, default=False,
+              help="Enable LLM-assisted analysis (requires API key)")
+@click.option("--format", "output_format", type=click.Choice(["table", "json", "sarif"]),
+              default="table", help="Output format")
+@click.option("--fail-on", type=click.Choice(["critical", "warning", "any"]),
+              default=None, help="Exit non-zero if findings at this severity or above")
+@click.option("--output", "-o", type=click.Path(), help="Output file path")
+def scan(
+    skill_path: str,
+    use_llm: bool,
+    output_format: str,
+    fail_on: str | None,
+    output: str | None,
+) -> None:
+    """Deep security scan via SkillSpector (Pillar 2).
+
+    Uses NVIDIA SkillSpector for 68-pattern deep scanning when available,
+    otherwise falls back to skora's built-in security scanner.
+    """
+    from .integrations.skillspector import run_skillspector
+
+    console.print(f"\n[bold]Deep security scan:[/bold] {skill_path}\n")
+
+    report = run_skillspector(skill_path, use_llm=use_llm)
+
+    if output_format == "json":
+        payload = json.dumps(report.model_dump(), indent=2, default=str)
+        click.echo(payload)
+        if output:
+            Path(output).write_text(payload)
+    elif output_format == "sarif":
+        console.print("[yellow]SARIF output requires skillspector directly.[/yellow]")
+        console.print("[dim]Use: skillspector scan --format sarif <path>[/dim]")
+    else:
+        _display_security_report(report)
+        if output:
+            Path(output).write_text(
+                json.dumps(report.model_dump(), indent=2, default=str)
+            )
+            console.print(f"\n[dim]Report exported to {output}[/dim]")
+
+    if fail_on:
+        if fail_on == "critical" and report.critical_count > 0:
+            sys.exit(1)
+        elif fail_on == "warning" and (report.critical_count + report.warning_count) > 0:
+            sys.exit(1)
+        elif fail_on == "any" and len(report.findings) > 0:
+            sys.exit(1)
+
+
 @main.command("metrics")
 def list_metrics_cmd() -> None:
     """List all registered evaluation metrics."""
@@ -404,6 +490,56 @@ def list_metrics_cmd() -> None:
         "[yellow]2[/yellow]=Diagnostic  "
         "[green]3[/green]=Efficiency[/dim]"
     )
+
+
+def _display_quality_report(report) -> None:
+    """Display a quality check report using Rich."""
+    grade_colors = {
+        "A+": "green bold", "A": "green", "B": "blue", "C": "yellow",
+        "D": "red", "F": "red bold",
+    }
+    color = grade_colors.get(report.grade, "white")
+
+    compliance = "[green]Yes[/green]" if report.spec_compliant else "[red]No[/red]"
+
+    console.print(
+        Panel(
+            f"[bold]Skill:[/bold] {report.skill_name}\n"
+            f"[bold]Grade:[/bold] [{color}]{report.grade}[/{color}]\n"
+            f"[bold]Spec Compliant:[/bold] {compliance}\n"
+            f"[bold]Errors:[/bold] {report.error_count}  "
+            f"[bold]Warnings:[/bold] {report.warning_count}  "
+            f"[bold]Info:[/bold] {report.info_count}\n"
+            f"[bold]Tool:[/bold] {report.tool_used}",
+            title="Quality Check Results",
+        )
+    )
+
+    if report.violations:
+        table = Table(title="Violations")
+        table.add_column("Severity", style="bold")
+        table.add_column("Rule")
+        table.add_column("Message")
+        table.add_column("File")
+        table.add_column("Line", justify="right")
+        table.add_column("Fixable", justify="center")
+
+        severity_colors = {"critical": "red", "warning": "yellow", "info": "blue"}
+
+        for v in report.violations:
+            sev_color = severity_colors.get(v.severity.value, "white")
+            table.add_row(
+                f"[{sev_color}]{v.severity.value.upper()}[/{sev_color}]",
+                v.rule_id,
+                v.message,
+                v.file_path or "-",
+                str(v.line_number or "-"),
+                "[green]Yes[/green]" if v.fixable else "[dim]No[/dim]",
+            )
+
+        console.print(table)
+    else:
+        console.print("[green]No quality violations found![/green]")
 
 
 def _display_security_report(report) -> None:

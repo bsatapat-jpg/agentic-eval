@@ -17,6 +17,9 @@ pip install skora
 |:---|:---|
 | `pip install skora[llm]` | LLM-as-judge scoring (OpenAI / Anthropic) |
 | `pip install skora[dashboard]` | Streamlit visualization dashboard |
+| `pip install skora[quality]` | skillsaw integration (Pillar 4: Quality Checks) |
+| `pip install skora[security]` | skillspector integration (Pillar 2: Deep Security) |
+| `pip install skora[tools]` | Both skillsaw + skillspector |
 | `pip install skora[all]` | Everything above |
 
 </details>
@@ -151,6 +154,34 @@ def my_agent(query: str) -> str:
 
 ---
 
+## Quality Checks & Deep Security Scanning
+
+Beyond trajectory evaluation, SKORA integrates with external tools for static analysis:
+
+```bash
+skora quality ./SKILL.md            # spec compliance, content quality (requires skillsaw)
+skora quality ./SKILL.md --fix      # auto-fix violations
+
+skora scan ./SKILL.md               # deep security scan (requires skillspector)
+skora scan ./SKILL.md --use-llm     # with LLM semantic analysis
+```
+
+```python
+from skora import check_quality, scan_security_deep
+
+quality = check_quality("./SKILL.md")           # Pillar 4
+print(f"Grade: {quality.grade}  Errors: {quality.error_count}")
+
+security = scan_security_deep("./SKILL.md")     # Pillar 2 (deep)
+print(f"Grade: {security.grade}")
+```
+
+> Both tools are optional. See the [CLI Reference](cli.md) for full options.
+
+<br>
+
+---
+
 ## What's Next?
 
 | | Guide | Learn about |
@@ -158,5 +189,6 @@ def my_agent(query: str) -> str:
 | **Metrics** | [Metrics Reference](metrics.md) | All 11 metrics — sub-scores, weights, examples |
 | **Integrate** | [Integration Guide](integration-guide.md) | YAML config, HTTP eval, CI/CD, architecture examples |
 | **Adapters** | [Framework Adapters](adapters.md) | Import traces from Gemini, LangGraph, Langfuse, MLflow |
+| **Security** | [Security Scanning](security.md) | Built-in scanner + skillspector deep scanning |
 | **Extend** | [Custom Metrics](custom-metrics.md) | Build your own evaluation metrics |
-| **CLI** | [CLI Reference](cli.md) | Command-line interface |
+| **CLI** | [CLI Reference](cli.md) | All commands including `quality` and `scan` |

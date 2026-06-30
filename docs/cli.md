@@ -10,7 +10,9 @@ skora <command> [options]
 
 | Command | Description |
 |:---|:---|
-| [`security`](#security) | Scan a SKILL.md for vulnerabilities |
+| [`security`](#security) | Scan a SKILL.md for vulnerabilities (built-in) |
+| [`scan`](#scan) | Deep security scan via skillspector |
+| [`quality`](#quality) | Quality checks via skillsaw |
 | [`results`](#results) | View stored evaluation results |
 | [`compare`](#compare) | Compare two SKILL.md files |
 | [`metrics`](#metrics) | List all registered metrics |
@@ -37,6 +39,54 @@ skora security ./SKILL.md --fail-on critical
 | `--output, -o` | Export report to JSON file |
 | `--db` | Database path (default: `./skora_results.db`) |
 | `--fail-on` | Exit non-zero on findings: `critical`, `warning`, or `any` |
+
+<br>
+
+---
+
+## `scan`
+
+Run a deep security scan using [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector) (68 patterns across 17 categories). Falls back to the built-in scanner if skillspector is not installed.
+
+```bash
+skora scan ./SKILL.md
+skora scan ./skills/ --format sarif --output findings.sarif
+skora scan ./SKILL.md --use-llm --fail-on critical
+```
+
+| Option | Description |
+|:---|:---|
+| `SKILL_PATH` | Path to SKILL.md file or directory *(required)* |
+| `--use-llm` | Enable skillspector's LLM-powered semantic analysis |
+| `--output, -o` | Export report to file |
+| `--format` | Output format: `table` (default), `json`, or `sarif` |
+| `--fail-on` | Exit non-zero on findings: `critical`, `warning`, or `any` |
+
+> Requires: `pip install skillspector` (or `pip install skora[security]`). Without it, falls back to the built-in 18-pattern scanner.
+
+<br>
+
+---
+
+## `quality`
+
+Run quality checks using [skillsaw](https://pypi.org/project/skillsaw/) — validates spec compliance, content intelligence, and structural integrity (40+ rules across 10 categories).
+
+```bash
+skora quality ./SKILL.md
+skora quality ./SKILL.md --fix
+skora quality ./skills/ --format json --fail-on error
+```
+
+| Option | Description |
+|:---|:---|
+| `SKILL_PATH` | Path to SKILL.md file or directory *(required)* |
+| `--fix` | Auto-fix violations (deterministic fixes; use `--fix --llm` for LLM-powered fixes) |
+| `--output, -o` | Export report to file |
+| `--format` | Output format: `table` (default) or `json` |
+| `--fail-on` | Exit non-zero on violations: `error`, `warning`, or `any` |
+
+> Requires: `pip install skillsaw` (or `pip install skora[quality]`).
 
 <br>
 
@@ -147,5 +197,5 @@ skora dashboard --db ./custom.db
 ---
 
 <p align="center">
-  <a href="getting-started.md">Getting Started</a> · <a href="integration-guide.md">Integration Guide</a> · <a href="security.md">Security</a> · <a href="dashboard.md">Dashboard</a>
+  <a href="getting-started.md">Getting Started</a> · <a href="integration-guide.md">Integration Guide</a> · <a href="security.md">Security</a> · <a href="architecture.md">Architecture</a> · <a href="dashboard.md">Dashboard</a>
 </p>

@@ -8,6 +8,8 @@
 
 ## System Overview
 
+SKORA implements the **4-Pillar Evaluation Framework** — four complementary dimensions that together determine whether a skill is production-ready.
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                      Your Agent Code                         │
@@ -22,22 +24,26 @@
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
-│                 Evaluation Engine (11 Metrics)                │
+│                    4-Pillar Evaluation                        │
 │                                                              │
-│   Tier 1 (5)           Tier 2 (5)           Tier 3 (1)       │
-│   ┌──────────────┐    ┌──────────────┐    ┌────────────┐     │
-│   │ Completion   │    │ Step Deviat. │    │  Action    │     │
-│   │ Fidelity     │    │ Tool Select. │    │  Economy   │     │
-│   │ Correctness  │    │ Alignment    │    └────────────┘     │
-│   │ Groundedness │    │ Recovery     │                       │
-│   │ Hallucinate  │    │ Optimality   │                       │
-│   └──────────────┘    └──────────────┘                       │
+│  Pillar 1: Adherence     Pillar 2: Security                  │
+│  ┌──────────────────┐    ┌──────────────────────────────┐    │
+│  │ 11 Metrics (3T)  │    │ Built-in Scanner (18 rules)  │    │
+│  │ LLM + Heuristic  │    │ + skillspector (68 patterns) │    │
+│  └──────────────────┘    └──────────────────────────────┘    │
+│                                                              │
+│  Pillar 3: Comparison    Pillar 4: Quality                   │
+│  ┌──────────────────┐    ┌──────────────────────────────┐    │
+│  │ A/B Testing      │    │ skillsaw (40+ rules)         │    │
+│  │ Ground Truth     │    │ Spec compliance + auto-fix   │    │
+│  │ Statistical Lift │    │ Content intelligence         │    │
+│  └──────────────────┘    └──────────────────────────────┘    │
 │                                                              │
 │   Judges:  Rule-based  ·  LLM-as-Judge (OpenAI / Claude)    │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
-│   Security Scanner  ·  Skill Comparator  ·  Result Store     │
+│   Result Store  ·  Integrations (skillsaw · skillspector)    │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
@@ -85,6 +91,11 @@ skora/
 │   │   ├── skill_adherence.py       # Composite scoring pipeline
 │   │   ├── security.py              # Vulnerability scanner
 │   │   └── comparator.py            # A/B skill comparison
+│   │
+│   ├── integrations/
+│   │   ├── __init__.py              # Exports for external tools
+│   │   ├── skillsaw.py              # skillsaw wrapper (Pillar 4)
+│   │   └── skillspector.py          # skillspector wrapper (Pillar 2)
 │   │
 │   └── adapters/
 │       ├── langgraph_adapter.py     # LangGraph / Aegra
@@ -154,6 +165,18 @@ The `SkillAdherenceEvaluator` computes a weighted average across all metrics, wi
 ### Adapter pattern for framework support
 
 Each adapter is a standalone module that converts framework-specific data to the common `Trace` model. This makes adding new framework support a single-file, self-contained task with no changes to the evaluation engine.
+
+<br>
+
+### Subprocess-based tool integrations
+
+External tools (skillsaw, skillspector) are invoked as subprocesses rather than imported as libraries. This keeps them fully optional — SKORA works without either tool installed — and isolates their dependency trees. Each integration module detects whether the tool is available at runtime and raises a clear `ToolNotInstalledError` (or falls back to built-in alternatives) when it's missing.
+
+<br>
+
+### Graceful degradation for Pillar 2
+
+The `scan_security_deep()` function uses skillspector when available but falls back to the built-in 18-pattern scanner with a warning when it's not. This ensures security scanning always works, even without the optional dependency.
 
 <br>
 
